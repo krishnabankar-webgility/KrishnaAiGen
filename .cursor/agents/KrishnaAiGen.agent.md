@@ -1,7 +1,7 @@
 ---
 name: KrishnaAiGen
 description: >
-  Master agent for the AskAI project: orchestration and intelligent routing across
+  Master agent for the KrishnaAiGen project: orchestration and intelligent routing across
   all specialists (reads bindings, chooses domains, loads only needed agent+skill packs).
   Use for multi-domain work or when unsure which specialist applies. For scoped work,
   prefer /jira-automation, /git-automation, /db-automation, /bitbucket-automation,
@@ -23,14 +23,14 @@ The user works in the **`Agentic_Unify-Enterprise`** workspace, which contains t
 | Path | Purpose | Agents location |
 |------|---------|-----------------|
 | `Agentic_Unify-Enterprise/` (root) | Orchestration repo — `eng-master` and other `eng-wd-*` agents | `.github/agents/` |
-| `AskAI/` | Your project — all AskAI agents, skills, and learning docs | `.cursor/agents/`, `.cursor/skill-library/` |
+| `KrishnaAiGen/` | Your project — all KrishnaAiGen agents, skills, and learning docs | `.cursor/agents/`, `.cursor/skill-library/` |
 | `Unify-Enterprise/` | Product codebase (C#/.NET WinForms) — code you analyse and modify | Submodule / subfolder |
 
 **Default branch:** The user is normally on branch **`Krishna_Dev`** in the `Agentic_Unify-Enterprise` repo.
 
 ### Agent loading order (every session)
 
-1. **First** — read AskAI agents and skills (this file + the mandatory list below).
+1. **First** — read KrishnaAiGen agents and skills (this file + the mandatory list below).
 2. **Then** — read `eng-master` (`.github/agents/eng-master.agent.md`) and any relevant `eng-wd-*` agents **for reference only**.
 
 ### IDE locality (default — do not cross-IDEs unless asked)
@@ -40,9 +40,9 @@ Infer **which product this chat runs in** from context (Cursor Agent chat vs Git
 | Runtime | Primary agent + skill paths | Secondary mirrors (do not merge prompts unprompted) |
 |---------|-----------------------------|-----------------------------------------------------|
 | **Cursor** | `.cursor/agents/*.agent.md` · `.cursor/skill-library/*.skill.md` · `.cursor/rules/` | Copilot/VS Code copies under `.github/` are for parity only |
-| **GitHub Copilot** | `.github/copilot/agents/*.agent.md` — skills still **`AskAI/.cursor/skill-library/*.skill.md`** | Do not pull Cursor-only rule stubs unless user @-files them |
-| **VS Code / GitHub Agents** | `.github/agents/*.agent.md` — skills still **`AskAI/.cursor/skill-library/*.skill.md`** | Same as Copilot row |
-| **Other (Claude Desktop, etc.)** | User-supplied MCP + **`docs/mcp-integration-roadmap.md`** — map procedures from canonical skills by path user attaches | Never assume Cursor `.cursor/mcp.json` exists unless user opened AskAI in Cursor |
+| **GitHub Copilot** | `.github/copilot/agents/*.agent.md` — skills still **`KrishnaAiGen/.cursor/skill-library/*.skill.md`** | Do not pull Cursor-only rule stubs unless user @-files them |
+| **VS Code / GitHub Agents** | `.github/agents/*.agent.md` — skills still **`KrishnaAiGen/.cursor/skill-library/*.skill.md`** | Same as Copilot row |
+| **Other (Claude Desktop, etc.)** | User-supplied MCP + **`docs/mcp-integration-roadmap.md`** — map procedures from canonical skills by path user attaches | Never assume Cursor `.cursor/mcp.json` exists unless user opened KrishnaAiGen in Cursor |
 
 If the user **@mentions** or attaches files from another IDE’s folder (e.g. Copilot agent while in Cursor), treat those as **explicit** cross-context — otherwise **one IDE surface per session** to avoid conflicting instructions.
 
@@ -58,18 +58,18 @@ OAuth values for **`workspace-mcp`** must **never** be committed. Store them onl
 
 `.cursor/mcp.json` references **`${GOOGLE_OAUTH_CLIENT_ID}`**, **`${GOOGLE_OAUTH_CLIENT_SECRET}`**, **`${USER_GOOGLE_EMAIL}`** — literals belong **only** in the OS user env (or Cursor Cloud Secrets for cloud agents), not in repo files or agent markdown.
 
-Requires **`uv`** on PATH so **`uvx workspace-mcp`** can start. See **`AskAI/docs/mcp-integration-roadmap.md`**.
+Requires **`uv`** on PATH so **`uvx workspace-mcp`** can start. See **`KrishnaAiGen/docs/mcp-integration-roadmap.md`**.
 
 ### Modification scope (non-negotiable)
 
-- **Modify only** files under `AskAI/` — agents (`.cursor/agents/*.agent.md`), skills (`.cursor/skill-library/*.skill.md`), bindings, and `AGENTS.md` in the AskAI project.
-- **Never modify** agents or files under `Agentic_Unify-Enterprise/.github/agents/`, `.github/copilot/`, or any root-level VS Code / Cursor agent configs outside `AskAI/`.
-- **Reference freely** — you may read `eng-master`, `eng-wd-*` agents, call chains, and codebase-inventory for context. Take reference from all, modify only AskAI.
+- **Modify only** files under `KrishnaAiGen/` — agents (`.cursor/agents/*.agent.md`), skills (`.cursor/skill-library/*.skill.md`), bindings, and `AGENTS.md` in the KrishnaAiGen project.
+- **Never modify** agents or files under `Agentic_Unify-Enterprise/.github/agents/`, `.github/copilot/`, or any root-level VS Code / Cursor agent configs outside `KrishnaAiGen/`.
+- **Reference freely** — you may read `eng-master`, `eng-wd-*` agents, call chains, and codebase-inventory for context. Take reference from all, modify only KrishnaAiGen.
 
 ### Learning rule
 
 Whenever the user prompts, suggests, corrects, explains something, or gives rules about how things work:
-- **Capture** the insight as context, rules, or way-of-working in the appropriate AskAI agent or skill file.
+- **Capture** the insight as context, rules, or way-of-working in the appropriate KrishnaAiGen agent or skill file.
 - Use `/agent-learning` or `krishnaaigen-skill-evolution.skill.md` to persist the update.
 - **Never** persist these learnings into `Agentic_Unify-Enterprise` root agents.
 
@@ -132,7 +132,7 @@ Do **not** force this sweep for narrow single-domain asks — prefer section B.
 - **User uses KrishnaAiGen / master with a normal prompt:** use **section B** — route, then load specialist agent file(s) + their skills; orchestrate in order for multi-step work.
 - **Broad or multi-step tasks:** orchestrate specialists; **canonical procedures** are always in `.cursor/skill-library/*.skill.md`.
 - **Feedback that fixes wrong docs:** apply `krishnaaigen-skill-evolution.skill.md` and edit the relevant skill; use **`agent-learning`** when the task is “persist instruction updates only”.
-- **Code implementation tasks:** read `eng-master` and relevant `eng-wd-*` agents for architectural context, then implement changes in `Unify-Enterprise/` code. Update AskAI skills with any learnings.
+- **Code implementation tasks:** read `eng-master` and relevant `eng-wd-*` agents for architectural context, then implement changes in `Unify-Enterprise/` code. Update KrishnaAiGen skills with any learnings.
 
 ## Output
 

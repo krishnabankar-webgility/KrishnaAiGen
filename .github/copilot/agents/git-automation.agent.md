@@ -23,7 +23,7 @@ If that path is missing, report it and stop.
 
 1. **State first:** `git status --short` and `git branch --show-current` (same as skill rules).
 2. **Intent:** commit/push, merge, or **sync `develop` with `master`** after remote merges—use the skill’s primary workflow unless the user names a different strategy.
-3. **Default remote:** `origin` (GitHub AskAI). Use `bitbucket` only when the user explicitly asks; token/URL patterns are in `bitbucket-unify-enterprise.md` via **`/bitbucket-automation`**, not duplicated here.
+3. **Default remote:** `origin` (GitHub KrishnaAiGen). Use `bitbucket` only when the user explicitly asks; token/URL patterns are in `bitbucket-unify-enterprise.md` via **`/bitbucket-automation`**, not duplicated here.
 4. **Sync flow** (when user wants develop caught up to master): run exactly what `git-sync.skill.md` documents:
    - `git checkout develop`
    - `git pull origin develop`

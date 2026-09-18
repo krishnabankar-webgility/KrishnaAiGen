@@ -84,7 +84,7 @@ Key Metrics:
   • Errors: 19,094 (↑901% from 1,907)  
   • Fatals: 4,605 (↑4,460% from 101)
 
-🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/master/reports/wd-kibana-logs/2026-05-19-wd-kibana-daily-report.html
+🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/master/reports/wd-kibana-logs/2026-05-19-wd-kibana-daily-report.html
 
 Period: 2026-05-18 9:00 AM IST → 2026-05-19 9:00 AM IST
 ```

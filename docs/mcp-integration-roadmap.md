@@ -1,4 +1,4 @@
-# MCP integration roadmap (AskAI)
+# MCP integration roadmap (KrishnaAiGen)
 
 Canonical procedures remain in `.cursor/skill-library/*.skill.md`. This document tells **humans and agents** which MCP servers are wired today, which integrations need OAuth/private apps, and **what to do next** so Claude Desktop, Cursor (local + Cloud), and other MCP-capable clients can share the same pattern.
 
@@ -6,12 +6,12 @@ Canonical procedures remain in `.cursor/skill-library/*.skill.md`. This document
 
 | Context | Typical location |
 |--------|-------------------|
-| Cursor local desktop | `.cursor/mcp.json` under your opened workspace folder (often **`Agentic_Unify-Enterprise/.cursor/mcp.json`** when the root workspace contains AskAI). |
+| Cursor local desktop | `.cursor/mcp.json` under your opened workspace folder (often **`Agentic_Unify-Enterprise/.cursor/mcp.json`** when the root workspace contains KrishnaAiGen). |
 | Cursor Cloud Agents | Same repo `.cursor/mcp.json` plus secrets from **Cursor Dashboard → Cloud Agents → Secrets**. Env placeholders `${VAR}` in JSON resolve from injected secrets. |
 | Claude Desktop | Claude config file per Anthropic docs (OS-specific path); merge equivalent `mcpServers` entries. |
-| VS Code / GitHub Copilot agents | These consume AskAI agents/skills from `.github/agents/` and `.github/copilot/agents/`; MCP is still whichever runtime attaches servers for that chat session — reuse the same server definitions below. |
+| VS Code / GitHub Copilot agents | These consume KrishnaAiGen agents/skills from `.github/agents/` and `.github/copilot/agents/`; MCP is still whichever runtime attaches servers for that chat session — reuse the same server definitions below. |
 
-**Committed reference snippet:** extend your IDE JSON from `AskAI/docs/mcp-servers.example.json` (example blocks only — paste host-specific secrets locally).
+**Committed reference snippet:** extend your IDE JSON from `KrishnaAiGen/docs/mcp-servers.example.json` (example blocks only — paste host-specific secrets locally).
 
 ## Your choices (locked for next implementation)
 
@@ -42,7 +42,7 @@ Both environments use the **same** `mcp.json` shape and **same variable names**;
 
 **Optional upgrade:** A team vault (Doppler, 1Password CLI, Azure Key Vault, etc.) can supply the same names to CI, cloud, and local — still **no tokens in the repo**.
 
-## Currently aligned with AskAI workflows
+## Currently aligned with KrishnaAiGen workflows
 
 | Integration | Purpose | MCP / transport | Secrets |
 |-------------|---------|------------------|---------|
@@ -158,7 +158,7 @@ Use one **stable name** per credential everywhere; only the **storage** differs 
 | `USER_GOOGLE_EMAIL` | Default account e.g. `krishna.bankar@webgility.com` |
 | `WORKSPACE_MCP_READ_ONLY` | Set `true` for read-only OAuth scopes + no write tools (recommended for digest agents) |
 | **HubSpot** | **Not in use** until Private App access exists (`HUBSPOT_PRIVATE_APP_TOKEN` reserved). |
-| `JIRA_*`, `SLACK_*`, `BITBUCKET_*` | Existing AskAI workflows |
+| `JIRA_*`, `SLACK_*`, `BITBUCKET_*` | Existing KrishnaAiGen workflows |
 
 Older docs referred to `GOOGLE_CLIENT_ID` — **`workspace-mcp`** expects **`GOOGLE_OAUTH_CLIENT_ID`** / **`GOOGLE_OAUTH_CLIENT_SECRET`** ([upstream env table](https://github.com/taylorwilsdon/google_workspace_mcp)).
 

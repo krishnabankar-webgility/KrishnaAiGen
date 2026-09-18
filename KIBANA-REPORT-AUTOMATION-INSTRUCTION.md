@@ -20,7 +20,7 @@ This instruction generates daily Elasticsearch log reports in HTML format for th
 | **Report Output Dir** | `reports/wd-kibana-logs/` |
 | **Report Filename** | `{TODAY}-wd-kibana-daily-report.html` |
 | **Default Time Window** | Yesterday 9:00 AM IST → Today 9:00 AM IST |
-| **HTML Preview Link** | `https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html` |
+| **HTML Preview Link** | `https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html` |
 
 ---
 
@@ -246,10 +246,10 @@ Message format:
   Period: {YESTERDAY} 9:00 AM IST → {TODAY} 9:00 AM IST
 
 HTML Preview URL format:
-  https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html
+  https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html
 
 Example:
-  https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/master/reports/wd-kibana-logs/2026-05-19-wd-kibana-daily-report.html
+  https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/master/reports/wd-kibana-logs/2026-05-19-wd-kibana-daily-report.html
 
 Automation behavior:
   ✗ Do NOT include full HTML in message (just the link)
@@ -334,7 +334,7 @@ Key Metrics:
   • Errors: 19,094 (↑901% from 1,907)
   • Fatals: 4,605 (↑4,460% from 101)
 
-🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/master/reports/wd-kibana-logs/2026-05-19-wd-kibana-daily-report.html
+🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/master/reports/wd-kibana-logs/2026-05-19-wd-kibana-daily-report.html
 
 Period: 2026-05-18 9:00 AM IST → 2026-05-19 9:00 AM IST
 ```

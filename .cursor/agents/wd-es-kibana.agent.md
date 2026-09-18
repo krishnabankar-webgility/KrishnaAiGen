@@ -721,7 +721,7 @@ REPORT_FILE="reports/wd-kibana-logs/{report-date}-wd-kibana-daily-report.html"
 HTML_PREVIEW_URL="https://htmlpreview.github.io/?${REPO_URL}/blob/${BRANCH}/${REPORT_FILE}"
 ```
 
-  Example output: `https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/cursor/daily-wd-kibana-log-report-1ba6/reports/wd-kibana-logs/2026-05-20-wd-kibana-daily-report.html`
+  Example output: `https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/cursor/daily-wd-kibana-log-report-1ba6/reports/wd-kibana-logs/2026-05-20-wd-kibana-daily-report.html`
 
 - Include this `HTML_PREVIEW_URL` in the Slack summary message (see Step 9)
 - After writing the file, respond with the file path plus a short summary of the most important findings
@@ -936,7 +936,7 @@ Slack posting is handled **automatically by the Cursor Automation platform** via
 📊 *WD Kibana Daily Log Report — {date}*
 Period: {start_ist} → {end_ist}
 
-🌐 *View full report:* <https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/{branch}/reports/wd-kibana-logs/{date}-wd-kibana-daily-report.html|Open in browser (htmlpreview.github.io)>
+🌐 *View full report:* <https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/{branch}/reports/wd-kibana-logs/{date}-wd-kibana-daily-report.html|Open in browser (htmlpreview.github.io)>
 
 *Executive Summary*
 [table: Total / Errors / Fatals / Warnings / Info / Error Rate with vs-prev]

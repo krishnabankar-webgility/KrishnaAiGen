@@ -147,7 +147,7 @@ Add to Cursor Dashboard → Automation → Secrets:
 ## 💾 Save This
 
 Bookmark this file for quick reference:  
-`C:\WG-Agentic\AskAI\QUICK-REFERENCE.md`
+`C:\WG-Agentic\KrishnaAiGen\QUICK-REFERENCE.md`
 
 Or pin it in VS Code:  
 `Ctrl+K Ctrl+P` → "QUICK-REFERENCE.md"

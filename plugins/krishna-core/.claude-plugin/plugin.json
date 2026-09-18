@@ -1,0 +1,11 @@
+{
+  "name": "krishna-core",
+  "version": "1.0.0",
+  "description": "Krishna's personal cross-repo Claude workflow: Jira UD, Git/Bitbucket, Slack, Confluence, local SQL Server, Kibana log analysis, Jenkins builds, the daily work digest, Windows/VPN/SMB troubleshooting, and the per-ticket Reference-folder convention.",
+  "author": {
+    "name": "Krishna Bankar",
+    "email": "krishna.bankar@webgility.com"
+  },
+  "homepage": "https://github.com/krishnabankar-webgility/KrishnaAiGen",
+  "keywords": ["jira", "bitbucket", "slack", "confluence", "kibana", "jenkins", "webgility"]
+}

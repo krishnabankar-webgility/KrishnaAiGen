@@ -59,7 +59,7 @@ KIBANA_INDEX = "61237d60-0ed9-11eb-816a-cde07dc15a1f"
 KIBANA_BASE = "https://kibana-wd.webgility.com"
 UNIQUE_TERMS_SIZE = "5000"
 STEP_HTML_PREVIEW = ("https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/"
-                     "AskAI/blob/master/reports/wd-kibana-logs/wd-step-breakdown.html")
+                     "KrishnaAiGen/blob/master/reports/wd-kibana-logs/wd-step-breakdown.html")
 
 ALWAYS_OPEN = {"\U0001F4CA Executive Summary"}
 

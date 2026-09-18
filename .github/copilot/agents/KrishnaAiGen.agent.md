@@ -1,7 +1,7 @@
 ---
 name: KrishnaAiGen
 description: >
-  Master agent for the AskAI project: orchestration and intelligent routing across
+  Master agent for the KrishnaAiGen project: orchestration and intelligent routing across
   all specialists (reads bindings, chooses domains, loads only needed agent+skill packs).
   Use for multi-domain work or when unsure which specialist applies. For scoped work,
   prefer jira-automation, git-automation, db-automation, bitbucket-automation,
@@ -22,35 +22,35 @@ The user works in the **`Agentic_Unify-Enterprise`** workspace, which contains p
 
 | Path | Purpose | Agents location |
 |------|---------|-----------------|
-| `Agentic_Unify-Enterprise/` (root) | Orchestration repo — `eng-master` and other `eng-wd-*` agents | `.github/agents/` (reference-only outside AskAI) |
-| `AskAI/` | This project — all AskAI agents, skills, learning docs | `.cursor/agents/`, `.cursor/skill-library/` |
+| `Agentic_Unify-Enterprise/` (root) | Orchestration repo — `eng-master` and other `eng-wd-*` agents | `.github/agents/` (reference-only outside KrishnaAiGen) |
+| `KrishnaAiGen/` | This project — all KrishnaAiGen agents, skills, learning docs | `.cursor/agents/`, `.cursor/skill-library/` |
 | `Unify-Enterprise/` | Product codebase (C#/.NET WinForms) | Submodule / subfolder |
 
 **Default branch:** The user is normally on branch **`Krishna_Dev`** in the `Agentic_Unify-Enterprise` repo.
 
 ### IDE locality (default — do not cross-IDEs unless asked)
 
-Infer **which product this chat runs in** (GitHub Copilot vs VS Code Agents vs Cursor vs Claude Desktop / other). **Load only that surface’s agent files** as primary routing; **canonical skills** remain **`AskAI/.cursor/skill-library/*.skill.md`** everywhere.
+Infer **which product this chat runs in** (GitHub Copilot vs VS Code Agents vs Cursor vs Claude Desktop / other). **Load only that surface’s agent files** as primary routing; **canonical skills** remain **`KrishnaAiGen/.cursor/skill-library/*.skill.md`** everywhere.
 
 | Runtime | Primary agents | Do not merge unprompted |
 |---------|----------------|-------------------------|
 | **GitHub Copilot** | `.github/copilot/agents/*.agent.md` | Cursor `.cursor/rules/` stubs unless @-attached |
 | **VS Code / GitHub Agents** | `.github/agents/*.agent.md` | Same |
 | **Cursor** | `.cursor/agents/*.agent.md` · `.cursor/rules/` | Copilot/VS Code mirrors under `.github/` are parity-only |
-| **Other** | User-attached docs + **`AskAI/docs/mcp-integration-roadmap.md`** | Do not assume Cursor `mcp.json` |
+| **Other** | User-attached docs + **`KrishnaAiGen/docs/mcp-integration-roadmap.md`** | Do not assume Cursor `mcp.json` |
 
 If the user **@mentions** files from another IDE folder, treat as **explicit** cross-context.
 
 ### Modification scope (non-negotiable)
 
-- **Modify only** files under `AskAI/` — agents (`.cursor/agents/*.agent.md`), skills (`.cursor/skill-library/*.skill.md`), bindings, `AGENTS.md`, and `.github/copilot/agents/` / `.github/agents/` **within the AskAI project** when syncing parity.
-- **Never modify** `eng-master` or other root `Agentic_Unify-Enterprise/.github/agents/` outside AskAI scope unless the user explicitly asks for that repo.
+- **Modify only** files under `KrishnaAiGen/` — agents (`.cursor/agents/*.agent.md`), skills (`.cursor/skill-library/*.skill.md`), bindings, `AGENTS.md`, and `.github/copilot/agents/` / `.github/agents/` **within the KrishnaAiGen project** when syncing parity.
+- **Never modify** `eng-master` or other root `Agentic_Unify-Enterprise/.github/agents/` outside KrishnaAiGen scope unless the user explicitly asks for that repo.
 
 ### Learning rule
 
 Whenever the user prompts corrections or rules about how things work:
 
-- **Capture** the insight in the appropriate AskAI skill or agent file.
+- **Capture** the insight in the appropriate KrishnaAiGen skill or agent file.
 - Use **`/agent-learning`** or `krishnaaigen-skill-evolution.skill.md` to persist updates.
 
 ---
@@ -129,7 +129,7 @@ Do **not** force this sweep for narrow single-domain asks — prefer section B.
 
 **Refresh the Dashboard automation prompt** when `daily-work-update.skill.md` changes. Prompts referencing **`daily-work-update.md`** or only legacy §1–§4 buckets are **obsolete**.
 
-Copy **verbatim** from **`AskAI/.cursor/skill-library/daily-work-update.skill.md` → § Cursor Automation setup → “4. Prompt”**.
+Copy **verbatim** from **`KrishnaAiGen/.cursor/skill-library/daily-work-update.skill.md` → § Cursor Automation setup → “4. Prompt”**.
 
 ## Output
 

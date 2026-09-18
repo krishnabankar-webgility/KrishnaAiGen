@@ -132,7 +132,7 @@ Key Metrics:
   • Errors: {count} ({vs-prev % change})
   • Fatals: {count} ({vs-prev % change})
 
-🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html
+🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html
 
 Period: {YESTERDAY} 9:00 AM IST → {TODAY} 9:00 AM IST
 
@@ -298,7 +298,7 @@ STEPS:
      • Fatals: {count} ({vs-prev % change})
      • [Any critical insights from Q1]
    
-   🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html
+   🔗 View full report: https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/{branch}/reports/wd-kibana-logs/{TODAY}-wd-kibana-daily-report.html
    
    Period: {YESTERDAY} 9:00 AM IST → {TODAY} 9:00 AM IST
    Indices: webgilitydesktop-{YESTERDAY}, webgilitydesktop-{TODAY}

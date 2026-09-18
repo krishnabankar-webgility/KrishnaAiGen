@@ -1,10 +1,10 @@
 # Agent → skill pack map
 
-> **Scope reminder:** This registry and all agents/skills listed here belong to the **AskAI project** (`AskAI/`). Agents under `Agentic_Unify-Enterprise/.github/agents/` (e.g. `eng-master`) are **reference-only** — never modified by AskAI agents.
+> **Scope reminder:** This registry and all agents/skills listed here belong to the **KrishnaAiGen project** (`KrishnaAiGen/`). Agents under `Agentic_Unify-Enterprise/.github/agents/` (e.g. `eng-master`) are **reference-only** — never modified by KrishnaAiGen agents.
 
 Cursor subagents do not support a native `skills: [...]` field. Each agent in `.cursor/agents/*.agent.md` lists the paths it must **read first**; this file is the human-readable map (keep it in sync when you add agents or skills).
 
-**Identification naming (AskAI):** specialists use **`<name>.agent.md`** (Cursor), **`<name>.skill.md`** (canonical packs under `.cursor/skill-library/`), **`<name>.prompt.md`** (optional helpers under `.github/prompts/`), and **`<name>.rule.md`** (human-readable rule identification beside `.mdc` files Cursor loads).
+**Identification naming (KrishnaAiGen):** specialists use **`<name>.agent.md`** (Cursor), **`<name>.skill.md`** (canonical packs under `.cursor/skill-library/`), **`<name>.prompt.md`** (optional helpers under `.github/prompts/`), and **`<name>.rule.md`** (human-readable rule identification beside `.mdc` files Cursor loads).
 
 **Master agent:** **`KrishnaAiGen`** — intelligent routing: bindings + meta skills always; domain skills loaded **via** the specialist agents you choose (see `.cursor/agents/KrishnaAiGen.agent.md`).  
 **Meta agent:** **`agent-learning`** — updates skills/agents from feedback (see `.cursor/agents/agent-learning.agent.md`).  

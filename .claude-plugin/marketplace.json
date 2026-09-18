@@ -1,0 +1,23 @@
+{
+  "name": "krishnaaigen",
+  "owner": {
+    "name": "Krishna Bankar",
+    "email": "krishna.bankar@webgility.com"
+  },
+  "metadata": {
+    "description": "Krishna's personal Claude Code agentic workflow — the Claude equivalent of the .cursor/ and .github/ agent systems in this repo.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "krishna-core",
+      "source": "./plugins/krishna-core",
+      "description": "Personal cross-repo workflow: Jira, Git, Bitbucket, Slack, Confluence, SQL Server, Kibana, Jenkins, daily digest, Windows/VPN troubleshooting, and the per-ticket Reference-folder convention. 18 skills, 14 agents, 13 slash commands, session preflight."
+    },
+    {
+      "name": "wd-core",
+      "source": "./plugins/wd-core",
+      "description": "Webgility Desktop (unify-enterprise): 16 wd-* domain agent routers onto the team-maintained .github/agents definitions, 13 skill wrappers, plus lead / dev / qa / review / scout role agents."
+    }
+  ]
+}
