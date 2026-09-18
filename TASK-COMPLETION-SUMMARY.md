@@ -146,7 +146,7 @@ Update `.cursorrules` to auto-post after report generation
 
 ### Step 3: Test Slack Posting (Local)
 ```powershell
-cd C:\WG-Agentic\AskAI
+cd C:\WG-Agentic\KrishnaAiGen
 & "scripts/post-report-to-slack.ps1"
 ```
 

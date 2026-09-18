@@ -1,0 +1,11 @@
+{
+  "name": "wd-core",
+  "version": "1.0.0",
+  "description": "Webgility Desktop (unify-enterprise) agents and skills. Domain agents route to the team-maintained .github/agents definitions so they never go stale; role agents (lead, dev, qa, review, scout) add the coworker workflow on top.",
+  "author": {
+    "name": "Krishna Bankar",
+    "email": "krishna.bankar@webgility.com"
+  },
+  "homepage": "https://github.com/krishnabankar-webgility/KrishnaAiGen",
+  "keywords": ["webgility-desktop", "unify-enterprise", "quickbooks", "csharp"]
+}

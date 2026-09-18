@@ -2,7 +2,7 @@
 
 ## User preference: `master`-first (Krishna)
 
-For the **AskAI** repo, default **all** day-to-day work to **`master`** unless the user explicitly requests another branch. Before commits: `git checkout master` and `git pull origin master`. Default push: `git push origin master`. Do not create feature branches or merge to `develop` unless asked.
+For the **KrishnaAiGen** repo, default **all** day-to-day work to **`master`** unless the user explicitly requests another branch. Before commits: `git checkout master` and `git pull origin master`. Default push: `git push origin master`. Do not create feature branches or merge to `develop` unless asked.
 
 The **`develop` sync** workflow below is **opt-in** — run it only when the user asks to bring `develop` up to date with `master`.
 
@@ -13,7 +13,7 @@ Safely perform day-to-day Git automation for shared branches, especially synchro
 
 | Alias | URL | Purpose |
 |-------|-----|---------|
-| `origin` | `https://github.com/krishnabankar-webgility/AskAI` | Primary GitHub remote (default push/fetch) |
+| `origin` | `https://github.com/krishnabankar-webgility/KrishnaAiGen` | Primary GitHub remote (default push/fetch) |
 | `bitbucket` | `https://bitbucket.org/webgility/unify-enterprise.git` | Bitbucket mirror / source remote |
 
 Use `origin` for all normal branch operations unless the user explicitly requests Bitbucket. To fetch or push to Bitbucket, substitute `bitbucket` for `origin` in any command.

@@ -31,7 +31,7 @@ See **"Git workflow safety"** section in `dev-customization-workflow.skill.md` f
 ## Modification scope (non-negotiable)
 
 - **Code changes** go into `Unify-Enterprise/` (the product codebase) — scoped to the customization node and related methods only. Do not make broad changes outside the customization scope.
-- **Agent/skill updates** go into `AskAI/` only. Never modify agents under `Agentic_Unify-Enterprise/.github/agents/`.
+- **Agent/skill updates** go into `KrishnaAiGen/` only. Never modify agents under `Agentic_Unify-Enterprise/.github/agents/`.
 - **Reference freely** — read `eng-master`, `eng-wd-*` agents, and call chains for architectural context.
 
 ## Customization code-change discipline
@@ -46,12 +46,12 @@ When modifying `Unify-Enterprise/` code for a customization:
 
 Read **both** files **in order** using your file-reading tool. Treat them as **mandatory**. If a path is missing, report it and stop.
 
-Paths are relative to the **AskAI** project root (this repo's `AskAI/` folder):
+Paths are relative to the **KrishnaAiGen** project root (this repo's `KrishnaAiGen/` folder):
 
-1. `AskAI/.cursor/skill-library/dev-customization-expertise.skill.md`
-2. `AskAI/.cursor/skill-library/dev-customization-workflow.skill.md` (includes **Git workflow safety** section)
+1. `KrishnaAiGen/.cursor/skill-library/dev-customization-expertise.skill.md`
+2. `KrishnaAiGen/.cursor/skill-library/dev-customization-workflow.skill.md` (includes **Git workflow safety** section)
 
-If the workspace root is `Agentic_Unify-Enterprise` and `AskAI` is nested, resolve `AskAI/.cursor/skill-library/...` under that folder.
+If the workspace root is `Agentic_Unify-Enterprise` and `KrishnaAiGen` is nested, resolve `KrishnaAiGen/.cursor/skill-library/...` under that folder.
 
 ## After skills are loaded
 
@@ -61,5 +61,5 @@ If the workspace root is `Agentic_Unify-Enterprise` and `AskAI` is nested, resol
 4. After changes, follow the **Completion checklist** and **post-implementation routine** in `dev-customization-expertise.skill.md` (review, build, fix compile errors, unit tests, verify, summarize at three levels, QA/rollback notes).
 5. **Jira QA comment** is mandatory after every push — use the template in `dev-customization-expertise.skill.md`.
 
-Human-readable map: `AskAI/.cursor/agent-skill-bindings.md` (or repo `.cursor/agent-skill-bindings.md` if mirrored).  
-GitHub Copilot mirror: `AskAI/.github/copilot/agents/dev-customization.agent.md`.
+Human-readable map: `KrishnaAiGen/.cursor/agent-skill-bindings.md` (or repo `.cursor/agent-skill-bindings.md` if mirrored).  
+GitHub Copilot mirror: `KrishnaAiGen/.github/copilot/agents/dev-customization.agent.md`.

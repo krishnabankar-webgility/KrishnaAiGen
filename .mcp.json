@@ -1,0 +1,128 @@
+{
+  "mcpServers": {
+    "bitbucket": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/run-with-env.mjs",
+        "npx",
+        "-y",
+        "bitbucket-mcp@latest"
+      ],
+      "env": {
+        "BITBUCKET_URL": "https://api.bitbucket.org/2.0",
+        "BITBUCKET_LOG_DISABLE": "false",
+        "BITBUCKET_LOG_DIR": "./.logs/bitbucket-mcp"
+      }
+    },
+    "kibana-logs": {
+      "command": "node",
+      "args": [
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/es-logs/server.mjs"
+      ],
+      "env": {
+        "ES_URL": "http://172.31.66.65:9200"
+      }
+    },
+    "wo-log": {
+      "command": "node",
+      "args": [
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/es-logs/server.mjs"
+      ],
+      "env": {
+        "ES_URL": "http://kibana-wo.webgility.com:9200"
+      }
+    },
+    "redis": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/launch-redis.mjs"
+      ]
+    },
+    "cis-db-proxy": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/cis-db-proxy/server.mjs"
+      ]
+    },
+    "wo-db": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/run-with-env.mjs",
+        "dotnet",
+        "run",
+        "--project",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/wo-db/WoDb.csproj"
+      ]
+    },
+    "cns-db": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/cns-db/server.mjs"
+      ]
+    },
+    "cws-db": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/cws-db/server.mjs"
+      ]
+    },
+    "jenkins": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/run-with-env.mjs",
+        "dotnet",
+        "run",
+        "--project",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/jenkins/Jenkins.csproj"
+      ],
+      "env": {
+        "JENKINS_URL": "http://jenkins.webgility.com:8080",
+        "JENKINS_JOB_NAME": "UnifyEnterprise"
+      }
+    },
+    "mssql-winauth": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/run-with-env.mjs",
+        "dotnet",
+        "run",
+        "--project",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/wd-db/WdDb.csproj"
+      ],
+      "env": {
+        "WD_AUTH_MODE": "windows"
+      }
+    },
+    "mssql-sqlauth": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/run-with-env.mjs",
+        "dotnet",
+        "run",
+        "--project",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/wd-db/WdDb.csproj"
+      ],
+      "env": {
+        "WD_AUTH_MODE": "sql"
+      }
+    }
+  }
+}

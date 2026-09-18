@@ -1,11 +1,11 @@
-# Copilot Instructions (AskAI project)
+# Copilot Instructions (KrishnaAiGen project)
 
 ## Canonical source
 
 - **Skills:** **`.cursor/skill-library/*.skill.md`** — single source of truth for Jira, Git, DB, Bitbucket, Slack, dev customization, Confluence, meta (`krishnaaigen-*.skill.md`), VPN/SMB, and network profile packs.
 - **Cursor agents:** **`.cursor/agents/*.agent.md`** — full behavioral specs; **mandatory read lists** drive what each specialist loads.
 - **GitHub Copilot agents:** **`.github/copilot/agents/*.agent.md`** — must mirror **`.cursor/agents/*.agent.md`** (same names, same skill paths, same routing). When you change behavior, update **`.cursor/skill-library/`** first, then Copilot wrappers per **`.cursor/skill-library/krishnaaigen-skill-evolution.skill.md`**.
-- **VS Code agent picker:** **`.github/agents/*.agent.md`** — sync from Copilot agents for AskAI specialists; see **`.cursor/agent-skill-bindings.md`** and **`.github/copilot/AGENT-SKILL-BINDINGS.md`** (keep both registries aligned).
+- **VS Code agent picker:** **`.github/agents/*.agent.md`** — sync from Copilot agents for KrishnaAiGen specialists; see **`.cursor/agent-skill-bindings.md`** and **`.github/copilot/AGENT-SKILL-BINDINGS.md`** (keep both registries aligned).
 
 ## Specialist agents (parity)
 

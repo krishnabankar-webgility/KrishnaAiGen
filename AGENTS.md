@@ -1,14 +1,14 @@
-# AskAI
+# KrishnaAiGen
 
 ## Cursor Cloud specific instructions
 
 ### Technology Stack
 - **Language/Framework:** C# / .NET 8 (LTS)
 - **Project Type:** Console application + optional **ASP.NET Core** catalog site
-- **Solution file:** `AskAI.sln` (root)
-- **Main project:** `src/AskAI/AskAI.csproj`
-- **Web catalog:** `src/AskAI.Web/AskAI.Web.csproj` (browser UI for agents, skills, prompts, and a keyword “catalog assistant”)
-- **Test project:** `tests/AskAI.Tests/AskAI.Tests.csproj` (xUnit)
+- **Solution file:** `KrishnaAiGen.sln` (root)
+- **Main project:** `src/KrishnaAiGen/KrishnaAiGen.csproj`
+- **Web catalog:** `src/KrishnaAiGen.Web/KrishnaAiGen.Web.csproj` (browser UI for agents, skills, prompts, and a keyword “catalog assistant”)
+- **Test project:** `tests/KrishnaAiGen.Tests/KrishnaAiGen.Tests.csproj` (xUnit)
 
 ### .NET SDK Setup
 The .NET 8 SDK is installed at `$HOME/.dotnet`. The PATH is configured in `~/.bashrc`:
@@ -24,7 +24,7 @@ export PATH=$DOTNET_ROOT:$PATH
 
 | Alias | URL | Purpose |
 |-------|-----|---------|
-| `origin` | `https://github.com/krishnabankar-webgility/AskAI` | Primary GitHub remote |
+| `origin` | `https://github.com/krishnabankar-webgility/KrishnaAiGen` | Primary GitHub remote |
 | `bitbucket` | `https://bitbucket.org/webgility/unify-enterprise.git` | Bitbucket — `unify-enterprise` |
 
 ### Cloud Agent secrets (Bitbucket + `unify-enterprise`)
@@ -108,8 +108,8 @@ git remote set-url bitbucket "https://krishnabankar:${BITBUCKET_TOKEN}@bitbucket
 |------|---------|
 | Restore dependencies | `dotnet restore` |
 | Build solution | `dotnet build` |
-| Run application | `dotnet run --project src/AskAI` |
-| Run agent catalog web | `dotnet run --project src/AskAI.Web` (then open the URL shown, e.g. `http://localhost:5088`) |
+| Run application | `dotnet run --project src/KrishnaAiGen` |
+| Run agent catalog web | `dotnet run --project src/KrishnaAiGen.Web` (then open the URL shown, e.g. `http://localhost:5088`) |
 | Run tests | `dotnet test` |
 | Lint (warnings as errors) | `dotnet build /p:TreatWarningsAsErrors=true` |
 
@@ -158,7 +158,7 @@ When a session fixes wrong or incomplete instructions, follow **`.cursor/skill-l
 
 ### Cursor subagents (`.cursor/agents/`)
 
-**Workspace root:** Cursor loads **project** subagents only from **`<workspace_folder>/.cursor/agents/`** (see [Subagents — file locations](https://cursor.com/docs/subagents)). In this monorepo, open **`Agentic_Unify-Enterprise`** as the workspace folder and keep **`.cursor/` at that repository root** — not under `AskAI/.cursor/` only — otherwise custom subagents do not appear for `@` / Task delegation after nesting AskAI inside a larger repo.
+**Workspace root:** Cursor loads **project** subagents only from **`<workspace_folder>/.cursor/agents/`** (see [Subagents — file locations](https://cursor.com/docs/subagents)). In this monorepo, open **`Agentic_Unify-Enterprise`** as the workspace folder and keep **`.cursor/` at that repository root** — not under `KrishnaAiGen/.cursor/` only — otherwise custom subagents do not appear for `@` / Task delegation after nesting KrishnaAiGen inside a larger repo.
 
 The **dropdown next to the Agent chat** (modes like Ask / Agent / Plan / Debug, model picker, ∞) is **not** populated from `.cursor/agents/*.agent.md`. That control is for **chat mode and model**, not a catalog of custom subagents. Cursor documents custom subagents as tools the main Agent delegates to; the canonical way to see what exists is the `.cursor/agents/` folder on disk.
 

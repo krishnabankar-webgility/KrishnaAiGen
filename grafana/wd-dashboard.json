@@ -50,7 +50,7 @@
         "type": "link",
         "icon": "external link",
         "tags": [],
-        "url": "https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/master/reports/wd-kibana-logs/wd-step-breakdown.html",
+        "url": "https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/master/reports/wd-kibana-logs/wd-step-breakdown.html",
         "targetBlank": true
       }
     ],
@@ -2372,7 +2372,7 @@
             "links": [],
             "options": {
               "mode": "markdown",
-              "content": "**Per-step timing bars** (the report's *Avg Step Processing Time \u2014 Shopify Payout / Amazon Settlement* charts) are parsed from the free-text `detail` field (`Step N: \u2026 ms`), which Grafana cannot aggregate natively. Generate them with **`grafana/wd_step_breakdown.py`** (no LLM \u2014 it writes a step-breakdown HTML and posts a Slack summary): [\ud83d\udcc8 Open latest step breakdown](https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/AskAI/blob/master/reports/wd-kibana-logs/wd-step-breakdown.html).\n\nThe panels below show performance-summary **run counts** and **per-subscriber runs**; click any subscriber to open that client's runs (with the raw `detail` steps) in Kibana."
+              "content": "**Per-step timing bars** (the report's *Avg Step Processing Time \u2014 Shopify Payout / Amazon Settlement* charts) are parsed from the free-text `detail` field (`Step N: \u2026 ms`), which Grafana cannot aggregate natively. Generate them with **`grafana/wd_step_breakdown.py`** (no LLM \u2014 it writes a step-breakdown HTML and posts a Slack summary): [\ud83d\udcc8 Open latest step breakdown](https://htmlpreview.github.io/?https://github.com/krishnabankar-webgility/KrishnaAiGen/blob/master/reports/wd-kibana-logs/wd-step-breakdown.html).\n\nThe panels below show performance-summary **run counts** and **per-subscriber runs**; click any subscriber to open that client's runs (with the raw `detail` steps) in Kibana."
             },
             "fieldConfig": {
               "defaults": {},

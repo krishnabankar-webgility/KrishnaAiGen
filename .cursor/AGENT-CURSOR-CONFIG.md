@@ -52,7 +52,7 @@ After report generation, post to Slack:
 
 ```bash
 # Manual: Copy report URL and post
-# File: C:\WG-Agentic\AskAI\reports\wd-kibana-logs\2026-05-04-wd-kibana-daily-report.md
+# File: C:\WG-Agentic\KrishnaAiGen\reports\wd-kibana-logs\2026-05-04-wd-kibana-daily-report.md
 
 # Automated via GitHub Actions (see slack-post-workflow.yaml)
 ```

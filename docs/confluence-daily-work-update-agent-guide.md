@@ -1,7 +1,7 @@
 # Daily Work Update agent — setup, workflow & expectations
 
 > **Audience:** Anyone setting up or adopting the **`/daily-work-update`** agent (Cursor / GitHub Copilot / VS Code).  
-> **Repo:** Paths below assume **`Agentic_Unify-Enterprise`** workspace with **`AskAI/`** as the agents/skills project.  
+> **Repo:** Paths below assume **`Agentic_Unify-Enterprise`** workspace with **`KrishnaAiGen/`** as the agents/skills project.  
 > **Published (mirror):** [Daily Work Update agent — team guide](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3045425160/Daily+Work+Update+agent+team+guide+Cursor+Copilot+VS+Code) · tiny [`CICFtQ`](https://webgility.atlassian.net/wiki/x/CICFtQ) — **Public** folder in Krishna’s personal space.  
 > **Last reviewed:** 2026-05-04
 
@@ -72,16 +72,16 @@ Everything below is **optional at runtime** except what your environment actuall
 
 ### 5.1 Repo & agent files
 
-1. Open the workspace so **`AskAI/.cursor/skill-library/`** resolves (e.g. **`Agentic_Unify-Enterprise`** root with **`AskAI`** inside).
+1. Open the workspace so **`KrishnaAiGen/.cursor/skill-library/`** resolves (e.g. **`Agentic_Unify-Enterprise`** root with **`KrishnaAiGen`** inside).
 2. Ensure agent definitions exist:
-   - **Cursor:** `AskAI/.cursor/agents/daily-work-update.agent.md`
+   - **Cursor:** `KrishnaAiGen/.cursor/agents/daily-work-update.agent.md`
    - **Copilot mirror (parity):** `.github/copilot/agents/daily-work-update.agent.md` *(add from Cursor copy if your branch does not have it yet)*
    - **VS Code picker mirror:** `.github/agents/daily-work-update.agent.md`
-3. Registry rows stay aligned: **`AskAI/.cursor/agent-skill-bindings.md`** (and **`AskAI/.github/copilot/AGENT-SKILL-BINDINGS.md`** if you use Copilot bindings).
+3. Registry rows stay aligned: **`KrishnaAiGen/.cursor/agent-skill-bindings.md`** (and **`KrishnaAiGen/.github/copilot/AGENT-SKILL-BINDINGS.md`** if you use Copilot bindings).
 
 ### 5.2 MCP & credentials
 
-1. Merge **`AskAI/docs/mcp-servers.example.json`** patterns into **`.cursor/mcp.json`** (placeholders only in git — real values in **Windows user env** or **Cursor Cloud Secrets**).
+1. Merge **`KrishnaAiGen/docs/mcp-servers.example.json`** patterns into **`.cursor/mcp.json`** (placeholders only in git — real values in **Windows user env** or **Cursor Cloud Secrets**).
 2. Set at minimum for a **full** digest:
    - Jira, Slack, Bitbucket (for git), and optionally Google OAuth env vars — **names** in **`daily-work-update.skill.md`** and **`mcp-integration-roadmap.md`**.
 3. Install **`uv`** on PATH for **`uvx workspace-mcp`** (Google).
@@ -89,7 +89,7 @@ Everything below is **optional at runtime** except what your environment actuall
 
 ### 5.3 Scheduling (optional but typical)
 
-1. Cursor Dashboard → **Cloud Agents** → **Schedule** — branch **`master`** of **`AskAI`** repo (see skill § Cursor Automation).
+1. Cursor Dashboard → **Cloud Agents** → **Schedule** — branch **`master`** of **`KrishnaAiGen`** repo (see skill § Cursor Automation).
 2. Add secrets in dashboard (**same variable names** as local env).
 3. Set **`DAILY_UPDATE_AUTOSEND=1`** so the run **posts without** the interactive “Post to #…?” step.
 4. Paste automation prompt **verbatim** from the skill (**§ “4. Prompt”**).
@@ -124,9 +124,9 @@ Everything below is **optional at runtime** except what your environment actuall
 
 ## 7. Related agents & docs
 
-- **`KrishnaAiGen`** (`AskAI/.cursor/agents/KrishnaAiGen.agent.md`) routes **`/daily-work-update`** and reminds to **refresh scheduled prompts** when **`daily-work-update.skill.md`** changes.
-- Project conventions: **`AskAI/AGENTS.md`**.
-- MCP overview: **`AskAI/docs/mcp-integration-roadmap.md`**.
+- **`KrishnaAiGen`** (`KrishnaAiGen/.cursor/agents/KrishnaAiGen.agent.md`) routes **`/daily-work-update`** and reminds to **refresh scheduled prompts** when **`daily-work-update.skill.md`** changes.
+- Project conventions: **`KrishnaAiGen/AGENTS.md`**.
+- MCP overview: **`KrishnaAiGen/docs/mcp-integration-roadmap.md`**.
 
 ---
 
@@ -134,19 +134,19 @@ Everything below is **optional at runtime** except what your environment actuall
 
 Attach exports or repo links for:
 
-- **`AskAI/.cursor/agents/daily-work-update.agent.md`**
-- **`AskAI/.cursor/skill-library/daily-work-update.skill.md`** (canonical)
-- **`AskAI/.cursor/skill-library/slack-integration.skill.md`**
-- **`AskAI/.cursor/skill-library/jira-workflow.skill.md`**
-- **`AskAI/.cursor/skill-library/bitbucket-unify-enterprise.skill.md`**
-- **`AskAI/.cursor/skill-library/git-sync.skill.md`**
-- **`AskAI/.cursor/skill-library/krishnaaigen-ephemeral-output.skill.md`**
-- **`AskAI/.cursor/agent-skill-bindings.md`**
-- **`AskAI/.cursor/agents/KrishnaAiGen.agent.md`**
-- **`AskAI/AGENTS.md`**
-- **`AskAI/docs/mcp-integration-roadmap.md`**
-- **`AskAI/docs/mcp-servers.example.json`**
-- Copilot/VS mirrors **if present:** `.github/copilot/agents/daily-work-update.agent.md`, `.github/agents/daily-work-update.agent.md`, **`AskAI/.github/copilot/AGENT-SKILL-BINDINGS.md`**
+- **`KrishnaAiGen/.cursor/agents/daily-work-update.agent.md`**
+- **`KrishnaAiGen/.cursor/skill-library/daily-work-update.skill.md`** (canonical)
+- **`KrishnaAiGen/.cursor/skill-library/slack-integration.skill.md`**
+- **`KrishnaAiGen/.cursor/skill-library/jira-workflow.skill.md`**
+- **`KrishnaAiGen/.cursor/skill-library/bitbucket-unify-enterprise.skill.md`**
+- **`KrishnaAiGen/.cursor/skill-library/git-sync.skill.md`**
+- **`KrishnaAiGen/.cursor/skill-library/krishnaaigen-ephemeral-output.skill.md`**
+- **`KrishnaAiGen/.cursor/agent-skill-bindings.md`**
+- **`KrishnaAiGen/.cursor/agents/KrishnaAiGen.agent.md`**
+- **`KrishnaAiGen/AGENTS.md`**
+- **`KrishnaAiGen/docs/mcp-integration-roadmap.md`**
+- **`KrishnaAiGen/docs/mcp-servers.example.json`**
+- Copilot/VS mirrors **if present:** `.github/copilot/agents/daily-work-update.agent.md`, `.github/agents/daily-work-update.agent.md`, **`KrishnaAiGen/.github/copilot/AGENT-SKILL-BINDINGS.md`**
 
 **Never attach:** tokens, `.env`, or a real **`.cursor/mcp.json`** with embedded secrets.
 
@@ -157,9 +157,9 @@ Attach exports or repo links for:
 | Resource | Location |
 |----------|----------|
 | Cursor subagents | https://cursor.com/docs/subagents |
-| Canonical daily skill | `AskAI/.cursor/skill-library/daily-work-update.skill.md` |
+| Canonical daily skill | `KrishnaAiGen/.cursor/skill-library/daily-work-update.skill.md` |
 | Google Workspace MCP | https://github.com/taylorwilsdon/google_workspace_mcp |
 
 ---
 
-*Webgility / AskAI — update this page when `daily-work-update.skill.md` or automation prompts change.*
+*Webgility / KrishnaAiGen — update this page when `daily-work-update.skill.md` or automation prompts change.*

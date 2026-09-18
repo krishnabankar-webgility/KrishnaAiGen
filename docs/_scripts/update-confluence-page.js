@@ -8,7 +8,7 @@ const https = require("https");
 const pageId = process.argv[2] || "3045425160";
 const mdPath =
   process.argv[3] ||
-  "c:/Agentic_Unify-Enterprise/AskAI/docs/_mcp_body_only.txt";
+  "c:/Agentic_Unify-Enterprise/KrishnaAiGen/docs/_mcp_body_only.txt";
 const site = "webgility.atlassian.net";
 const email = process.env.JIRA_EMAIL;
 const token = process.env.JIRA_API_TOKEN;
@@ -74,7 +74,7 @@ async function main() {
   const title = current.title;
 
   const storageValue =
-    `<p><em>Source: <code>AskAI/docs/confluence-daily-work-update-agent-guide.md</code> — markdown shown verbatim below.</em></p>` +
+    `<p><em>Source: <code>KrishnaAiGen/docs/confluence-daily-work-update-agent-guide.md</code> — markdown shown verbatim below.</em></p>` +
     `<pre>${escapeHtml(md)}</pre>`;
 
   const putPath = `/wiki/rest/api/content/${pageId}`;
@@ -82,7 +82,7 @@ async function main() {
     id: pageId,
     type: "page",
     title,
-    version: { number: nextVer, message: "Full guide from AskAI/docs (REST)" },
+    version: { number: nextVer, message: "Full guide from KrishnaAiGen/docs (REST)" },
     body: {
       storage: {
         value: storageValue,

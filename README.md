@@ -1,4 +1,4 @@
-# AskAI
+# KrishnaAiGen
 
 A .NET 8 console application that sends prompts to an AI provider and persists conversations.
 
@@ -8,10 +8,10 @@ The solution follows established .NET design patterns across four layers:
 
 | Layer | Namespace | Responsibility |
 |-------|-----------|---------------|
-| Core | `AskAI.Core.*` | Interfaces and domain models (no external dependencies) |
-| App | `AskAI.App.*` | Configuration (`AiOptions`, `DatabaseOptions`) and `ServiceFactory` |
-| Console | `AskAI.Console.*` | CLI command handlers (`AskCommandHandler`) |
-| Service | `AskAI.Service.*` | Concrete provider and repository implementations |
+| Core | `KrishnaAiGen.Core.*` | Interfaces and domain models (no external dependencies) |
+| App | `KrishnaAiGen.App.*` | Configuration (`AiOptions`, `DatabaseOptions`) and `ServiceFactory` |
+| Console | `KrishnaAiGen.Console.*` | CLI command handlers (`AskCommandHandler`) |
+| Service | `KrishnaAiGen.Service.*` | Concrete provider and repository implementations |
 
 ### Design Patterns
 
@@ -25,7 +25,7 @@ The solution follows established .NET design patterns across four layers:
 ## Getting Started
 
 ```bash
-dotnet run --project src/AskAI -- "What is the capital of France?"
+dotnet run --project src/KrishnaAiGen -- "What is the capital of France?"
 ```
 
 ## Running Tests
@@ -36,10 +36,10 @@ dotnet test
 
 ## Agent catalog (web)
 
-The **`AskAI.Web`** project serves a small dashboard that scans this repository for Cursor agents, canonical skills, GitHub Copilot mirrors, VS Code picker agents, and GitHub prompts. It includes editable **insights** (capabilities, weaknesses, performance notes, learnings, suggestions) in `src/AskAI.Web/Data/agent-insights.json`, and a floating **catalog assistant** that answers from keyword matches over the catalog (no external LLM required).
+The **`KrishnaAiGen.Web`** project serves a small dashboard that scans this repository for Cursor agents, canonical skills, GitHub Copilot mirrors, VS Code picker agents, and GitHub prompts. It includes editable **insights** (capabilities, weaknesses, performance notes, learnings, suggestions) in `src/KrishnaAiGen.Web/Data/agent-insights.json`, and a floating **catalog assistant** that answers from keyword matches over the catalog (no external LLM required).
 
 ```bash
-dotnet run --project src/AskAI.Web
+dotnet run --project src/KrishnaAiGen.Web
 ```
 
-If the app cannot find `.cursor/agents` (for example when publishing to a folder without the repo), set **`AgentCatalog:RepoRoot`** in `appsettings.json` or the **`AGENT_CATALOG_REPO_ROOT`** environment variable to the folder that **contains** `.cursor/agents`. In the **Agentic_Unify-Enterprise** monorepo that is the **repository root**, not only the `AskAI/` subfolder—`RepoRootResolver` walks up from the web process until it finds `.cursor/agents`.
+If the app cannot find `.cursor/agents` (for example when publishing to a folder without the repo), set **`AgentCatalog:RepoRoot`** in `appsettings.json` or the **`AGENT_CATALOG_REPO_ROOT`** environment variable to the folder that **contains** `.cursor/agents`. In the **Agentic_Unify-Enterprise** monorepo that is the **repository root**, not only the `KrishnaAiGen/` subfolder—`RepoRootResolver` walks up from the web process until it finds `.cursor/agents`.

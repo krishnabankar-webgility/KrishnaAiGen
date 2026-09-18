@@ -236,7 +236,7 @@ Add to agent secrets in Cursor Dashboard:
 
 ### Test PowerShell Script (Local)
 ```powershell
-cd C:\WG-Agentic\AskAI
+cd C:\WG-Agentic\KrishnaAiGen
 & "scripts/post-report-to-slack.ps1" -ReportDate "2026-05-04"
 # Posts to #wd_performance (default channel)
 ```

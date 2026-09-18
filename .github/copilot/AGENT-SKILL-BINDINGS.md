@@ -37,7 +37,7 @@
 =======
 │   ├── KrishnaAiGen.agent.md          # VS Code picker — master (synced from copilot/agents)
 │   ├── KrishnaAIGen-autonomous.agent.md  # VS Code — autonomous tooling variant
-│   └── …                              # other AskAI specialists (synced from copilot/agents)
+│   └── …                              # other KrishnaAiGen specialists (synced from copilot/agents)
 ├── copilot/
 │   ├── agents/*.agent.md              # GitHub Copilot agents (mirror Cursor names)
 │   └── skills/                        # Legacy — prefer .cursor/skill-library
@@ -83,7 +83,7 @@ When you add, remove, or rename an agent or skill:
 
 1. Update `.cursor/agent-skill-bindings.md` and this file.
 2. Update `.cursor/agents/*.agent.md` and `.github/copilot/agents/*.agent.md` together; sync `.github/agents/*.agent.md` for VS Code.
-3. Update `AGENTS.md` (AskAI section) if user-facing commands change.
+3. Update `AGENTS.md` (KrishnaAiGen section) if user-facing commands change.
 
 ## Differences from older Copilot layout
 
