@@ -3,7 +3,9 @@
 
 Full pipeline: Check running builds → Pre-build Slack (`@here creating installer from <branch>`) → trigger Jenkins build → poll → verify network share (auto-fix if needed) → copy to QA share → optional Dropbox upload (+ shareable link) → Change Jira assignee + transition to RFT → Slack notification → Jira comment (LAST).
 
-This skill is referenced by the agent files at:
+This skill is referenced by the live plugin agent `plugins/krishna-core/agents/ship-to-qa.md`
+(renamed from `wd-jenkins-build` — same pipeline, sweeter name). The historical Cursor/Copilot
+copies still use the old name:
 - `.github/agents/wd-jenkins-build.agent.md`
 - `.cursor/agents/wd-jenkins-build.agent.md`
 

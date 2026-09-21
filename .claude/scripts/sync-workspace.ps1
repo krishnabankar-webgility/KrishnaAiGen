@@ -5,7 +5,11 @@
   into both working trees. Safe to re-run; it only writes files it owns.
 
   What it writes:
-    <tree>\<repo>\.mcp.json   from KrishnaAiGen\.claude\mcp\wg-mcp.json
+    <tree>\.mcp.json          from KrishnaAiGen\.claude\mcp\wg-mcp.json (the TRUE VS Code
+                              workspace root - VS Code opens C:\WG-Agentic itself, not a
+                              sub-repo, so this is the copy that surface actually reads)
+    <tree>\<repo>\.mcp.json   the same file, for when a CLI session is launched with its
+                              cwd inside one specific sub-repo instead of the tree root
     <tree>\CLAUDE.md          from C:\WG-Agentic\CLAUDE.md (tree 2 gets a marked copy)
 
   What it never touches:
@@ -46,13 +50,27 @@ foreach ($tree in $Trees) {
     continue
   }
 
+  $new = Get-Content -LiteralPath $Source -Raw
+
+  # The tree root itself first - this is the directory VS Code actually opens
+  # as the workspace (per the folder screenshot: WG-Agentic, not a sub-repo),
+  # so it is the copy that surface reads for MCP servers.
+  $rootDest = Join-Path $tree '.mcp.json'
+  $rootOld  = if (Test-Path -LiteralPath $rootDest) { Get-Content -LiteralPath $rootDest -Raw } else { $null }
+  if ($rootOld -eq $new) {
+    Write-Host "up to date  $rootDest" -ForegroundColor DarkGray
+  } elseif ($PSCmdlet.ShouldProcess($rootDest, 'write .mcp.json')) {
+    [System.IO.File]::WriteAllText($rootDest, $new, [System.Text.UTF8Encoding]::new($false))
+    Write-Host "wrote       $rootDest" -ForegroundColor Green
+    $written++
+  }
+
   foreach ($repo in $Repos) {
     $dir = Join-Path $tree $repo
     if (-not (Test-Path -LiteralPath $dir)) { $skipped++; continue }
     if ($Skip -contains $repo) { $skipped++; continue }
 
     $dest = Join-Path $dir '.mcp.json'
-    $new  = Get-Content -LiteralPath $Source -Raw
     $old  = if (Test-Path -LiteralPath $dest) { Get-Content -LiteralPath $dest -Raw } else { $null }
 
     if ($old -eq $new) {

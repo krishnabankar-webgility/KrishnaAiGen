@@ -95,7 +95,7 @@ Test-NetConnection -ComputerName 192.168.0.141 -Port 5985
 Test-WSMan -ComputerName 192.168.0.141
 
 # 6. Test PSRemoting
-$pw = ConvertTo-SecureString "webgility@2020" -AsPlainText -Force
+$pw = ConvertTo-SecureString ([System.Environment]::GetEnvironmentVariable("RDP_PWD","User")) -AsPlainText -Force
 $cred = New-Object PSCredential("192.168.0.141\webgility", $pw)
 Invoke-Command -ComputerName 192.168.0.141 -Credential $cred -ScriptBlock { hostname }
 ```
@@ -191,14 +191,15 @@ $cred = New-Object PSCredential("192.168.0.141\webgility", $securePw)
 
 ### Store RDP credentials (auto-login):
 ```powershell
-cmdkey /generic:TERMSRV/192.168.0.141 /user:"192.168.0.141\webgility" /pass:"webgility@2020"
-cmdkey /generic:192.168.0.141 /user:"192.168.0.141\webgility" /pass:"webgility@2020"
+$pwd = [System.Environment]::GetEnvironmentVariable("RDP_PWD","User")
+cmdkey /generic:TERMSRV/192.168.0.141 /user:"192.168.0.141\webgility" /pass:"$pwd"
+cmdkey /generic:192.168.0.141 /user:"192.168.0.141\webgility" /pass:"$pwd"
 ```
 
-### Store in User-level env vars (for scripts):
+### Store in User-level env vars (for scripts) — one-time, type the real password only at the prompt, never in a file:
 ```powershell
 [System.Environment]::SetEnvironmentVariable("RDP_UN", "192.168.0.141\webgility", "User")
-[System.Environment]::SetEnvironmentVariable("RDP_PWD", "webgility@2020", "User")
+[System.Environment]::SetEnvironmentVariable("RDP_PWD", (Read-Host -AsSecureString "VM password" | ConvertFrom-SecureString -AsPlainText), "User")
 ```
 
 ### Read in scripts:

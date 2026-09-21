@@ -14,6 +14,11 @@ desktop app, or `claude` on the command line — from any working directory, in 
 each one does, and what "restart" means for each Claude surface. Read that if anything below
 is unclear.
 
+**Per-integration setup and the full picture: [docs/MASTER-WORKFLOW.md](docs/MASTER-WORKFLOW.md)**
+— one doc per third-party system (Bitbucket, Jenkins, Jira/Confluence, Slack, SQL Server/CIS DB,
+QuickBooks Desktop, remote VM/RDP, web/browser Claude), plus how a session flows and exactly
+which file to edit to change any part of it.
+
 The short version — typed into the **Claude chat box**, not a terminal:
 
 ```
@@ -33,7 +38,7 @@ Verify:
 /mcp             # 11 local servers + your claude.ai connectors
 ```
 
-Typing `/` should now offer `/jira`, `/git`, `/bitbucket`, `/customization`, `/jenkins`,
+Typing `/` should now offer `/jira`, `/git`, `/bitbucket`, `/customization`, `/ship-to-qa`,
 `/kibana`, `/confluence`, `/slack`, `/db`, `/daily-update`, `/sys-fix`, `/learn`, `/route`.
 
 ### Updating later
@@ -54,14 +59,20 @@ KrishnaAiGen/
     scripts/sync-workspace.ps1        distributes .mcp.json + CLAUDE.md to both trees
   plugins/
     krishna-core/
-      agents/      14   personal specialists (jira, git, bitbucket, slack, db, confluence,
-                        daily-update, dev-customization, sys-troubleshoot, kibana, jenkins,
-                        krishnaaigen router, krishnaaigen-autonomous, agent-learning)
-      skills/      18   the 17 ported .cursor/skill-library packs + ticket-context
-      commands/    13   thin launchers onto the agents above
+      agents/      16   personal specialists (jira, git, bitbucket, slack, db, confluence,
+                        daily-update, dev-customization, sys-troubleshoot, kibana, ship-to-qa,
+                        krishnaaigen router, krishnaaigen-autonomous, agent-learning,
+                        skill-author, memory-gardener)
+      skills/      19   the 17 ported .cursor/skill-library packs + ticket-context +
+                        resume-work + krishnaaigen-skill-evolution (rewritten for the
+                        plugin era — see "Standing behavior" below)
+      commands/    14   thin launchers onto the agents above, + /agents-list
       hooks/            SessionStart preflight
-      scripts/          preflight.ps1
+      scripts/          preflight.ps1, approve-mcp-trust.py (see "One-time setup extras")
       reference/        archived Copilot prompts (not active — see its README)
+      docs/             per-integration setup (Bitbucket/Jenkins/Atlassian/Slack/SQL/RDP/QB),
+                        memory-behavior.md, web-claude-access.md, and MASTER-WORKFLOW.md — the
+                        single doc tying all of it together, start there
     wd-core/
       agents/      21   16 wd-* domain routers + wd-lead / wd-dev / wd-qa / wd-review / wd-scout
       skills/      13   wrappers onto unify-enterprise/.github/skills/
@@ -135,6 +146,55 @@ directly in that repo. Pass `-WhatIf` to preview.
 > excludes (`.git/info/exclude`) if they clutter your `git status`.
 
 ---
+
+## One-time setup extras
+
+**MCP approval, without clicking through it per project.** Claude Code requires a one-time
+approval per project directory before it will start the local `.mcp.json` servers — normally
+that means clicking "yes" the first time you open a session in each repo. To skip that entirely:
+
+```
+python "C:\WG-Agentic\KrishnaAiGen\plugins\krishna-core\scripts\approve-mcp-trust.py"
+```
+
+Run once. It pre-approves all 11 servers for every repo, both trees, in every path-spelling
+Windows tools produce for the same directory. Safe to re-run after adding a new repo or server.
+This has to be run by you — Claude Code's own guardrail refuses to let an agent edit its own
+state file (`~/.claude.json`) on its own, which is exactly the right call here.
+
+**Permission mode.** `permissions.defaultMode` is set to `"acceptEdits"` in
+`C:\Users\<you>\.claude\settings.json` (user-level — every surface reads this file) so routine
+edits and tool calls proceed without a prompt; Claude still asks before something genuinely
+destructive. Change it with the `/config` command, or ask Claude to change it via the
+`update-config` skill.
+
+## Standing behavior (not a file you install — how sessions are expected to act)
+
+- **Repeats get named, not re-explained.** When you teach something that matches an earlier
+  correction, the session says so ("same rule as `<skill>`") and does the work — it doesn't
+  re-ask for details already on file, and it folds new patterns into a skill or memory
+  immediately rather than waiting to be asked. See `krishnaaigen-skill-evolution`.
+- **Memory moves through live -> archived -> permanently deleted.** `memory-gardener`
+  archives a ticket-tied memory right away once it's Done via RFT + a QA comment; a ticket
+  closed some other way waits for 15 idle days; a still-open ticket is never archived on idle
+  time alone; non-ticket memory just uses the 15-day-idle rule. Archived memory is skipped by
+  default on routine reads (`ticket-context`, `resume-work`) — named or specifically-asked-for
+  access only. If an archived file then sits untouched for 15 *more* days on already-finished
+  work, it's permanently deleted (with a one-line entry in `_archive/_deleted-log.md` first) —
+  the only step here that isn't reversible.
+- **A session resumes from anywhere.** Claude's own memory already reaches the CLI, the VS Code
+  extension and the desktop app (same account, same machine). For a web session or a different
+  machine, `resume-work` reads/writes a short git-tracked resume note instead.
+
+## Seeing and invoking agents directly
+
+Type `@` in the chat box — Claude Code's agent-mention autocomplete lists every installed
+subagent, personal and `wd-core` alike, and selecting one runs that agent on your message
+directly (no routing through a conversation first). Or just describe the task in plain language
+and let the routing table in `C:\WG-Agentic\CLAUDE.md` pick the right one.
+
+For a plain list instead of the autocomplete UI, run `/agents-list` (optionally filtered, e.g.
+`/agents-list payout`) — prints every personal and `wd-core` agent with a one-line description.
 
 ## Credentials
 

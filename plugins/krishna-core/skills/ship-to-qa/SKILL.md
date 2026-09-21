@@ -1,9 +1,9 @@
 ---
-name: wd-jenkins-build
-description: 'Use when: triggering Jenkins build for unify-enterprise, deploying build to QA share, uploading installer to Dropbox, posting QA Testing Jira comment, sending Slack build notification, checking Jenkins build status, copying WebgilityInstaller to network share, changing Jira assignee/status to RFT.'
+name: ship-to-qa
+description: 'Use when: an implementation is done and ready to hand off to QA, triggering a Jenkins build for unify-enterprise, deploying a build to the QA share, uploading the installer to Dropbox, posting the QA Testing Jira comment, sending a Slack build notification, checking Jenkins build status, copying WebgilityInstaller to the network share, or changing Jira assignee/status to RFT. The whole 10-step build-to-QA-handoff pipeline, end to end — say "ship to QA" (or /ship-to-qa) and it collects whatever details are still missing.'
 ---
 
-# wd-jenkins-build
+# ship-to-qa
 
 Full operational rules live in **`reference.md`** next to this file. **Read `reference.md` before taking any action** — it is the authoritative source and this page is only a map of it.
 
@@ -28,4 +28,4 @@ Full operational rules live in **`reference.md`** next to this file. **Read `ref
 - (line 942) §11 Related Agents / Delegation
 - (line 952) §12 Subtask → Pipeline Map (TEMPORARY — testing only)
 
-> Ported from `.cursor/skill-library/wd-jenkins-build.skill.md` (canonical Cursor/Copilot copy). Keep both in sync — see the `krishnaaigen-skill-evolution` skill.
+> Ported from `.cursor/skill-library/wd-jenkins-build.skill.md` (canonical Cursor/Copilot copy, still named `wd-jenkins-build` there — historical only). Renamed to `ship-to-qa` in the live plugin copy — see the `krishnaaigen-skill-evolution` skill.

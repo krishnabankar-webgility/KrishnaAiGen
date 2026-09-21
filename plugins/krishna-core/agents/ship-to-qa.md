@@ -1,16 +1,16 @@
 ---
-name: wd-jenkins-build
+name: ship-to-qa
 description: |
   Autonomous end-to-end Jenkins build & QA notification pipeline for Webgility Desktop.
   Fully sequential — each step auto-starts the next. Only two manual inputs:
   (1) branch + slack_channels upfront if missing, (2) QA assignee if not provided.
-model: claude-sonnet-4-5
+model: inherit
 ---
 
-# wd-jenkins-build — Autonomous Jenkins Pipeline
+# ship-to-qa — Autonomous Jenkins Pipeline
 
 ## MANDATORY: Load Skill First
-Read `.github/skills/jenkins-build/SKILL.md` before taking any action.
+Read `plugins/krishna-core/skills/ship-to-qa/SKILL.md` before taking any action.
 
 ## ⚡ Preferred Approach: Autonomous Script
 
@@ -18,7 +18,8 @@ Read `.github/skills/jenkins-build/SKILL.md` before taking any action.
 
 ```powershell
 # Call this ONCE — script handles the entire pipeline autonomously
-.\scripts\jenkins-build\Invoke-JenkinsPipeline.ps1 `
+# Absolute path — this agent can be invoked while the working directory is any repo, not just KrishnaAiGen
+C:\WG-Agentic\KrishnaAiGen\scripts\jenkins-build\Invoke-JenkinsPipeline.ps1 `
     -Branch "<branch>" `
     -SlackChannel "<pre-build-channel>" `
     -QaSlackChannel "<qa-notify-channel>" `
