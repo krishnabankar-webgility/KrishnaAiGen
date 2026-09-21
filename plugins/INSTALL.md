@@ -120,7 +120,7 @@ Then verify by typing these in the chat box:
 | `/plugin` | `krishna-core` and `wd-core`, both installed |
 | `/agents` | 14 personal agents + 21 `wd-*` agents |
 | `/mcp` | 11 local servers, plus your claude.ai connectors |
-| just `/` | the list should offer `/jira`, `/git`, `/bitbucket`, `/customization`, `/jenkins`, `/kibana`, `/confluence`, `/slack`, `/db`, `/daily-update`, `/sys-fix`, `/learn`, `/route` |
+| just `/` | the list should offer `/jira`, `/git`, `/bitbucket`, `/customization`, `/ship-to-qa`, `/kibana`, `/confluence`, `/slack`, `/db`, `/daily-update`, `/sys-fix`, `/learn`, `/route` |
 
 Then try a real one:
 

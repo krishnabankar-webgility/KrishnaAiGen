@@ -16,6 +16,7 @@ Before diagnostics or fixes, read using your file-reading tool:
 1. the **`vpn-smb-access`** skill (load it with the Skill tool) — SMB/UNC, VPN + Jenkins/RDP, `net use`, Kerberos over VPN  
 2. the **`network-profile-fix`** skill (load it with the Skill tool) — adapter stuck Public, discovery / file-sharing profile issues  
 3. the **`sys-cleanup-optimization`** skill (load it with the Skill tool) — system slowness, disk cleanup, temp files, startup optimization, app uninstall  
+4. the **`remote-vm-management`** skill (load it with the Skill tool) — PSRemoting/WinRM to a specific VM/jump box, `vm-manager.ps1`, RDP auto-connect, remote command execution or restart
 
 If symptoms clearly match one row in **Known Issue → Skill Mapping**, read that skill first; otherwise skim both, then follow **Workflow**.
 
@@ -74,6 +75,7 @@ When UAC-elevated actions are needed, briefly explain what you are doing and why
 | Cannot access UNC/SMB share over VPN | the **`vpn-smb-access`** skill (load it with the Skill tool) |
 | Network adapter stuck on Public profile | the **`network-profile-fix`** skill (load it with the Skill tool) |
 | System slow / disk full / cleanup / optimization | the **`sys-cleanup-optimization`** skill (load it with the Skill tool) |
+| RDP/VM access, run a command on a remote VM/jump box, PSRemoting/WinRM setup or failure | the **`remote-vm-management`** skill (load it with the Skill tool) |
 | General network diagnostics | Built-in toolkit (see below) |
 
 ## Diagnostic Toolkit (PowerShell)

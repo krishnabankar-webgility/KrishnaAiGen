@@ -23,10 +23,12 @@ It typically holds:
 |---|---|
 | Screenshots of the reported behavior | `BeforeQtySync.png`, `ReorderPointAlertPopup.png` |
 | Sample payloads from the store or CIS | `#12764_2Item_2LotNumEach.json`, `MDS1643.json` |
+| Order JSON data (request/response) | same pattern as sample payloads above |
 | Customer logs | `<date>_Debug.log`, `_Error.log`, `_Info.log` |
 | Prior analysis | `RCA_*.md`, `*-qa-verification.html`, implementation plans |
 | Draft PR / review replies | `PR10422_ReviewReplies_Draft.md` |
 | Exported data | `*.csv` from a report being fixed |
+| **The prompt file** — `<TICKET-ID>.md`, named after the ticket itself | The full prompt trail for this implementation, start to end — Krishna keeps one per ticket. Read it before anything else in the folder: it's usually the fastest way to see what was actually asked, in order, without re-deriving it from code or from Jira comments. |
 
 Loose files directly under `Reference\` (not in a ticket folder) are cross-ticket:
 RCA write-ups, `Branch_PR.txt`, design HTML. Scan filenames for the ticket ID before
@@ -47,6 +49,12 @@ Two places, both worth a look:
   the ticket ID first — a prior session may have recorded exactly the trap you are about to hit.
 - **Claude's own memory directory** — check whether a `ticket` or customization note
   already exists for this ID before re-deriving it.
+
+**Skip `_archive/` folders in both places** unless the user names this ticket's history
+specifically or the task genuinely needs it. `memory-gardener` moves stale memory there on
+purpose so it stops being read (and costing tokens) on every routine request — pulling it back
+in by default defeats that. If the live memory looks incomplete and you suspect the missing
+piece was archived, say so and ask before spending the read on it.
 
 ## 3. The ticket itself
 

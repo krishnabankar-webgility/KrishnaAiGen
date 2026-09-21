@@ -86,6 +86,11 @@ For wide result sets, use `Format-List` instead of `Format-Table`.
 - **Never** expose passwords — mask with `***`.
 - **Never** restore over system databases (`master`, `msdb`, `model`, `tempdb`).
 - Only ask DROP/REPLACE confirmation when the user's intent is ambiguous.
+- **`UnifyDB` is the only database this server may be written to.** It's Krishna's local
+  testing/sandbox catalog — full read/write, any operation, no extra confirmation needed beyond
+  the ambiguity check above. Every other database on this instance (restored customer DBs,
+  anything else) is **read-only** — queries and restores are fine, `INSERT`/`UPDATE`/`DELETE`/DDL
+  are not, unless the user explicitly says to write to that specific one.
 
 ## §6 Troubleshooting (only consult on errors)
 
