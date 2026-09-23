@@ -25,6 +25,12 @@ Activate this agent when:
 - **One place for the Jira link per customization node:** `Unify-Enterprise/.../wg.eCC.DTO/Shared/CustomizationConstant.cs` — place the `// https://webgility.atlassian.net/browse/UD-…` (or short product note) **immediately above the const** for that node only.
 - **Do not** scatter the same Jira URL, story id, or `UD-####` in method names, regions, inline comments across production files, or interface declarations. Use **neutral, meaningful** comments when behavior needs explanation.
 
+## Adding a new node — always at the end
+
+New entries in `CustomizationConstant.cs` go **at the end of the file, below the last existing
+customization node** — never inserted alphabetically or grouped by feature. Keeps the diff for
+a new node a pure append, and keeps node history in the order they were added.
+
 ## Ticket type → node definition rule
 
 | Ticket Type | Node Definition Rule | Example |
@@ -171,16 +177,37 @@ if (IsCustomizationEnabled(...))
   - explicit **high / mid / low-level** explanation after implementation.
 - If wording is ambiguous, align implementation with the **latest clarified** instruction.
 
+## Blockers vs. plan — two separate things, always
+
+For any customer request implementation:
+- **Blockers, open questions, anything needing confirmation** go in the **chat itself**, flagged
+  plainly and as soon as found — not buried inside the implementation plan document.
+- The **implementation plan** stays separate and detailed — a plan document, not a running log
+  of questions.
+- **Don't re-flag what's already resolved.** Before listing a blocker, check whether it was
+  already answered in an earlier prompt or is already settled by the code itself (an existing
+  pattern, an existing node, a prior architecture decision) — if so, it's not a blocker, just
+  apply it and say so in one line rather than re-asking.
+
 ## Completion checklist (after implementation, bugfix, or story — follow in order)
 
-1. **Self-review:** Syntax, null paths, duplication, unnecessary branches; prefer concise C# (including LINQ/lambdas **where they improve clarity**, not density for its own sake).
-2. **Build:** Run the same clean/build the team uses for `Unify-Enterprise` (e.g. Visual Studio **Build Solution** or `dotnet build` / `MSBuild` on the appropriate `.sln`). Fix **all** compile errors introduced or exposed by the change.
-3. **Lint / analyzers:** Address new warnings that indicate real issues; do not broaden scope to pre-existing noise unless asked.
-4. **Unit tests:** Write tests covering the new node condition logic, all new methods, edge cases, and failure scenarios. Run and resolve all failures.
-5. **Code review & optimization:** Remove unnecessary/unused/redundant code. Confirm Kibana log statements are in place for all error and exception paths.
-6. **Git safety check:** Verify branch tracking before any push (see `dev-customization-workflow.skill.md`).
-7. **Jira QA comment:** Add structured QA comment on the Jira ticket after push (see template below).
-8. **Summarize** at high / mid / low level and note QA/rollback as in the post-implementation routine below.
+1. **Diff scope check:** `git diff` (or status) against the ticket's actual requirement — every
+   changed file should be explainable by the change. **Exception:** `apiConfig.xml` and
+   `AuthenticationController.cs` commonly show diffs from local environment/config even when
+   untouched by the change itself — don't flag or revert those two on scope grounds alone, do
+   flag anything else that doesn't map to the requirement.
+2. **Self-review:** Syntax, null paths, duplication, unnecessary branches; prefer concise C# (including LINQ/lambdas **where they improve clarity**, not density for its own sake). Remove any newly written code that ended up unused.
+3. **Build:** Run the same clean/build the team uses for `Unify-Enterprise` (e.g. Visual Studio **Build Solution** or `dotnet build` / `MSBuild` on the appropriate `.sln`). Fix **all** compile errors introduced or exposed by the change.
+4. **Lint / analyzers:** Address new warnings that indicate real issues; do not broaden scope to pre-existing noise unless asked.
+5. **Unit tests:** Write tests covering the new node condition logic, all new methods, edge cases, and failure scenarios. Run and resolve all failures.
+6. **Code review:** Run the `code-review` skill against the diff if available in-session; otherwise apply a generic standard review pass (correctness, null-safety, duplication, blast radius). Fix anything critical it finds, or add explicit handling for it — don't just note it and move on.
+7. **Optimization pass:** If an improvement or optimization is possible within the change's scope (not a drive-by rewrite of unrelated code), make it.
+8. **Comment discipline:** New/changed code gets comments only where the *why* isn't obvious from the code — keep each to **1-3 lines**, never a block or a restatement of what the code does.
+9. **Code review & cleanup:** Remove unnecessary/unused/redundant code. Confirm Kibana log statements are in place for all error and exception paths.
+10. **Regression check:** Re-read the change against every case/scenario/handling this area already covered (existing tests, the architecture-first checklist above) — confirm none of them changed behavior for a profile where the node/setting is absent or disabled. Absent node or setting = existing behavior, unchanged, always.
+11. **Git safety check:** Verify branch tracking before any push (see `dev-customization-workflow.skill.md`).
+12. **Jira QA comment:** Add structured QA comment on the Jira ticket after push (see template below).
+13. **Summarize** at high / mid / low level and note QA/rollback as in the post-implementation routine below.
 
 ## Pre-commit code review checklist
 
@@ -195,6 +222,10 @@ Before presenting code changes for review:
 - [ ] No unnecessary, redundant, or debug code remains
 - [ ] Build is clean — no errors or warnings
 - [ ] Unit tests written and passing
+- [ ] Diff contains only files explainable by the change (`apiConfig.xml`/`AuthenticationController.cs` excepted)
+- [ ] Comments on new code are 1-3 lines, only where the why isn't obvious
+- [ ] Code review pass run (skill if available, generic checklist otherwise) — findings fixed or handled
+- [ ] Confirmed: absent node/setting reproduces existing behavior exactly
 
 ## Post-implementation routine
 
@@ -254,6 +285,11 @@ After implementation is pushed to the remote branch, add a comment on the Jira t
 | 🔀 Git Safety | Always verify git status and remote origin before pushing |
 | 🚫 No develop/master | Never push or merge into develop or master — ever |
 | 💬 Jira Comment | Always add QA comment on Jira after push — final mandatory step |
+| 🎯 Scope-Only Diff | Every changed file must map to the ticket — except `apiConfig.xml`/`AuthenticationController.cs` |
+| 🧹 No Dead Code | Remove any newly written code that ended up unused |
+| 🛡️ Silent Fallback | No node/setting present = existing behavior, exactly, every time |
+| ✏️ Short Comments | 1-3 lines, only where the why isn't obvious — never a block |
+| 🔎 Review Before Done | Run `code-review` (or a generic pass) and resolve what it flags as critical |
 
 ## Domain-specific memory (UD-31982–style customizations)
 

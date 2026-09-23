@@ -47,6 +47,11 @@ ErrorLog_<D-Mon-YY>        e.g. ErrorLog_7-Apr-26
 If today's file doesn't show the issue (or doesn't exist yet — e.g. investigating first thing
 in the morning), check yesterday's before concluding there's nothing logged.
 
+**Order download request/response is in the `_Warn` file, not `_Error` or `_Info`.** When an
+order is downloaded from the platform (via CIS) into the WD DB, the request and response —
+including the order JSON payload itself — is logged at **Warn** level in the manual ErrorLog
+folder. Check `_Warn` first for anything about what CIS actually sent for a given order.
+
 ## 2. QuickBooks SDK log
 
 ```
