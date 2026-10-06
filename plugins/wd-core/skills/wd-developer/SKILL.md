@@ -15,5 +15,5 @@ Say so and stop rather than improvising.
 
 The file is written for GitHub Copilot. Translate its tool names: `read`/`search` ->
 `Read`/`Glob`/`Grep`, `edit` -> `Edit`/`Write`, `execute` -> `Bash`/`PowerShell`,
-`agent` -> the `Agent` tool, `atlassian/*` -> `mcp__claude_ai_Atlassian_Rovo__*`.
+`agent` -> the `Agent` tool, `atlassian/*` -> `mcp__claude_ai_Atlassian_MCP__*`.
 A `#file:../x` reference means a path relative to the file you are reading.

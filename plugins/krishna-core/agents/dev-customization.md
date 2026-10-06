@@ -55,7 +55,10 @@ If the workspace root is `Agentic_Unify-Enterprise` and `KrishnaAiGen` is nested
 
 ## After skills are loaded
 
-1. Follow the **step-based workflow** strictly: Step 0 (Read Jira) → Step 1 (Node Discovery) → Step 2 (Plan) → Step 3 (Implement) → Step 4 (Build) → Step 5 (Unit Tests) → Step 6 (Review & Push) → Step 7 (Jira QA Comment).
+1. Follow the **step-based workflow** strictly: Step 0 (Read Jira) → Step 1 (Node Discovery) →
+   Step 2 (Plan) → **Step 2a (post the plan to Jira as a comment — `jira-workflow` §1a — before
+   any code changes; complexity-based Fibonacci Story Points, not hours)** → Step 3 (Implement)
+   → Step 4 (Build) → Step 5 (Unit Tests) → Step 6 (Review & Push) → Step 7 (Jira QA Comment).
 2. **Always check existing nodes first** in `CustomizationConstant.cs` before proposing new implementation.
 3. Gate with **`CustomizationNode.Contains` + profileID at the call site** before invoking customization helpers so unused profiles avoid extra work.
 4. After changes, follow the **Completion checklist** and **post-implementation routine** in `dev-customization-expertise.skill.md` (review, build, fix compile errors, unit tests, verify, summarize at three levels, QA/rollback notes).

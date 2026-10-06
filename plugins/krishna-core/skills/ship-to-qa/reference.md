@@ -838,7 +838,7 @@ CC: @QA @Hitesh Devashrayee
 | Limitations | Jira description | Section labeled "Limitations:" |
 | Impacted Area | PR commits / code changes | `git log --no-merges origin/develop..origin/<branch>` + `git show --stat` — describe at **module/workflow** level only (NO file names) |
 | Test Cases | Customer requirements + implementation logic | Derive from: (1) Jira description use cases, (2) code behavior (happy/edge/negative paths), (3) Confluence CIM page if exists |
-| Links (DB, QBD, creds) | Jira description + Confluence personal page | Parse Dropbox links, credentials, test orders from Jira. Also check `searchConfluenceUsingCql` for page titled with Jira ID in personal space |
+| Links (DB, QBD, creds) | Jira description + Confluence personal page | Parse Dropbox links, credentials, test orders from Jira. Also check `searchConfluence` for page titled with Jira ID in personal space |
 | Customization Workflow | Implementation knowledge + Jira | How to enable node, what config is needed, execution steps, expected result |
 | CC | Default list | Always: `@Hitesh Devashrayee @Arvind Chavan`. Add others if mentioned in Jira. |
 
@@ -846,12 +846,12 @@ CC: @QA @Hitesh Devashrayee
 
 1. **Extract Jira ID** from branch name (pattern `UD-\d+`)
 2. **Fetch Jira Issue** — `getJiraIssue(issueIdOrKey)` → get description, store, accounting, limitations, links, credentials
-3. **Check Confluence personal space** — `searchConfluenceUsingCql` with `title ~ "<JiraID>"` → get CIM page with DB links, implementation notes, node info
+3. **Check Confluence personal space** — `searchConfluence` with `title ~ "<JiraID>"` → get CIM page with DB links, implementation notes, node info
 4. **Check branch commits** — `git log --oneline --no-merges origin/develop..origin/<branch>` → get commit messages (skip merge commits)
 5. **Check code changes** — `git show --stat <commit>` → identify impacted modules (describe high-level only, NO file names for QA)
 6. **Get CustomizationConstant.cs diff** — `git diff origin/develop..origin/<branch> -- "**/CustomizationConstant.cs"` → extract new node constant name
 7. **Draft comment** → present to user for review before posting
-8. **Post via MCP** — `addCommentToJiraIssue` using ADF format with proper @mention account IDs
+8. **Post via MCP** — `addOrEditJiraIssueComment` using ADF format with proper @mention account IDs
 
 ### 8.4 — Important Rules
 

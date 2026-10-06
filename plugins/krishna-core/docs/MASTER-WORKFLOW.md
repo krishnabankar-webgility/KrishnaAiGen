@@ -10,7 +10,9 @@ A **Claude Code plugin marketplace** (`krishna-core` + `wd-core`, from
 `KrishnaAiGen/.claude-plugin/marketplace.json`) installed once per machine, giving every Claude
 surface on it — CLI, VS Code extension, desktop app — the same agents, skills, commands, and MCP
 server access, from any working directory under `C:\WG-Agentic` or `C:\WG-Agentic 2`. Full
-layout and design rules: [../README.md](../README.md).
+layout and design rules: [../README.md](../README.md). For the structural/execution-flow view
+(diagrams, memory locations, the full agent/skill inventory) rather than the "how do I configure
+X" view this doc gives, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## First-time setup, start to finish
 

@@ -25,11 +25,19 @@ Activate this agent when:
 - **One place for the Jira link per customization node:** `Unify-Enterprise/.../wg.eCC.DTO/Shared/CustomizationConstant.cs` — place the `// https://webgility.atlassian.net/browse/UD-…` (or short product note) **immediately above the const** for that node only.
 - **Do not** scatter the same Jira URL, story id, or `UD-####` in method names, regions, inline comments across production files, or interface declarations. Use **neutral, meaningful** comments when behavior needs explanation.
 
-## Adding a new node — always at the end
+## Adding a new node — always at the end, with a single-line Jira comment
 
 New entries in `CustomizationConstant.cs` go **at the end of the file, below the last existing
 customization node** — never inserted alphabetically or grouped by feature. Keeps the diff for
 a new node a pure append, and keeps node history in the order they were added.
+
+Every new node gets the Jira link **immediately above the const, as a single-line comment** —
+not a block, not a description, just the URL:
+
+```csharp
+// https://webgility.atlassian.net/browse/UD-XXXXX
+public const string NODE_NAME_ = "NODE_NAME_";
+```
 
 ## Ticket type → node definition rule
 
@@ -73,32 +81,36 @@ a new node a pure append, and keeps node history in the order they were added.
 - **Separate methods for larger changes:** Add helper methods when logic grows.
 - **No scheduler changes** unless the user **explicitly** requests them.
 
-## Logging and error handling
+## Logging and error handling — selective, not everywhere
 
-- Add **Kibana-style** logs for each customization flow:
-  - **Info:** start/end summary, item counts, profile id.
-  - **Debug:** intermediate branch decisions and filters.
-  - **Exception / Error:** API failures, parsing failures, unexpected nulls.
-- Keep exception boundaries clear and user-facing messages **actionable**.
+Kibana logs earn their place by being useful during a real investigation, not by covering every
+line. Adding one everywhere is worse than adding none — it's noise that buries the log that
+actually matters when someone's debugging at 2am. Find the **one or two most critical spots** in
+the new flow and log there, not throughout.
 
-### Kibana logging — mandatory code pattern
-
-Every new method handling errors or exceptions **must** include Kibana log statements:
+- **Error, always:** every `catch` block on the new code path gets `KibanaLogger.LogError`. This
+  is the one log level that's never optional.
+- **Debug, at the two spots that actually help a future debug session:**
+  - Right after an external request is sent and its response collected (the request/response
+    boundary) — this is usually the single highest-value log in a customization, since it's what
+    answers "what did we actually send/get back" without needing `qbsdklog.txt` or a repro.
+  - Anywhere else genuinely load-bearing for tracing *this* flow specifically — not a restatement
+    of what the code already makes obvious.
+- **Info / Warn: avoid unless something specifically needs them.** Don't add a start/end Info
+  log or a Warn on every validation branch by default — only if there's a concrete reason this
+  particular flow needs that visibility (e.g. it runs unattended on a schedule with no other way
+  to confirm it ran).
 
 ```csharp
-// Error logging
-KibanaLogger.LogError("MethodName", exception, profileId);
+// The one debug log worth having — request/response boundary
+KibanaLogger.LogDebug("MethodName", $"Request: {requestSummary}, Response: {responseSummary}", profileId);
 
-// Info / Trace logging (for key operations)
-KibanaLogger.LogInfo("MethodName", "Operation description", profileId);
+// Error — every catch block on the new path
+catch (Exception ex)
+{
+    KibanaLogger.LogError("MethodName", ex, profileId);
+}
 ```
-
-| Scenario | Log Level |
-|----------|-----------|
-| Exception caught in try/catch | Error |
-| Validation failure | Warning |
-| Key business operation start/end | Info |
-| Unexpected null or empty value | Warning |
 
 ## Mandatory code structure pattern
 

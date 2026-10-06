@@ -2,6 +2,14 @@
 
 Single skill file for the `jira-automation` agent. Covers issue creation (default **Priority Rank 1** + **estimated Story Points** on new Stories — §1.6c), subtasks, Original Estimate, worklogs, **Sub-task Done / Story Done: OE from Story SP when missing** (§3.1.1), status transitions, **Done vs RFT handoff** (§3.7), **no unsolicited issue links on Done/RFT** (§3.8), and sprint lifecycle.
 
+**A note on tool names:** this file names specific Atlassian connector tools (`getJiraIssue`,
+`editJiraIssue`, `addOrEditJiraIssueComment`, …). That tool surface has changed twice in the
+two weeks before 2026-10-05 — a full prefix rename, then a restructure onto a smaller primary
+set plus a `discover` → `executeRead`/`executeWrite`/`executeDestructive` fallback for
+anything else. Treat every tool name here as "last verified working," not permanent — if one
+errors as unknown, call `discover` with the goal in plain language rather than assuming the
+capability is gone. See `atlassian-connector-access` in memory for the full history.
+
 ---
 
 ## 1. Issue Creation
@@ -229,6 +237,68 @@ When working on a Story that has Sub-tasks, or when the user asks to **clean lin
 
 ---
 
+## 1a. Implementation plan comment — post to Jira BEFORE code changes start
+
+Once an implementation plan is ready for a customer request/implementation — after Step 2
+(Plan) of `dev-customization-workflow`, before Step 3 (Implement) — post it as a Jira comment on
+the ticket. This is separate from, and happens well before, the §7 QA/RFT comment.
+
+**Content (summarized, well-formatted, concise — not a full design doc):**
+- High-level implementation approach.
+- Execution workflow, in short (the steps, not the code).
+- Effort estimation as Story Points: the **combined total**, and **individual figures for
+  Analysis, Dev, and QA**.
+
+Draft in chat first, same as every other Jira comment in this skill (§7.5's pattern) — post only
+after the user doesn't object, don't wait for an explicit "yes, post it" if none of the content
+is contested.
+
+### 1a.1 Story Point evaluation rule — complexity-based, Fibonacci only (general)
+
+**Applies every time Krishna explicitly asks for a Story Point / effort evaluation** — the
+pre-code implementation-plan comment (this section) is one trigger, but so is any other
+ad-hoc "what's the SP for this" / "give me an effort estimate" request, wherever it comes up.
+It overrides §1.6c/§1.10's half-point-increment convention **whenever an evaluation is
+explicitly requested** (that half-point convention is only the *default, unrequested* SP a
+new Story gets on creation per §1.6c — this rule doesn't touch that automatic default, only
+an estimate someone actually asked for). The rule:
+
+- **Based on complexity of the implementation and testing, never on hours.** Don't back into a
+  number from an hours guess; judge how hard the work and its verification actually are.
+- **Fibonacci series only:** `1, 2, 3, 5, 8` (and `13, 21, ...` only as an intermediate figure
+  before splitting — never as a number left standing in the final estimate, see below). No
+  fractional/half-point values (that's the §1.6c convention, not this one).
+- **8 is the ceiling for any single figure that stays in the final estimate.** If the honest
+  complexity of a figure — the combined total, or Analysis, or Dev, or QA individually — would
+  rate above 8, **do not write 13 or 21 into the plan.** Instead, break that piece of work into
+  parts/phases, and give **each part/phase its own Fibonacci estimate**.
+- **Recursive:** If a part/phase's own combined estimate again breaches 8, break that phase
+  further into the next level of parts/phases — repeat until every leaf figure in the plan is
+  `≤ 8` on the Fibonacci scale.
+- **Always break out Analysis + Dev + QA separately, plus the combined total** — never report
+  just one combined number.
+- **Keep it short and table/point-formatted** — this is a scannable estimate, not a design doc.
+
+**Worked example:** Dev alone is honestly a 13 (too large for one figure) → split Dev into
+"Dev — Phase 1" (5) and "Dev — Phase 2" (5) → each is ≤ 8, so both stand. If "Dev — Phase 2" was
+itself still too large at, say, an honest 13, split it again into two more parts, each rated
+≤ 8, and so on.
+
+Report format, anywhere this rule applies (in a Jira comment, in chat, or both):
+
+```
+Effort Estimate (Story Points, complexity-based, Fibonacci)
+- Analysis: <n>
+- Dev: <n> (or, if split: Phase 1 — <n>, Phase 2 — <n>, ...)
+- QA: <n>
+- Combined: <sum>
+```
+
+If nothing in the estimate crossed 8, the phase breakdown is unnecessary — just report the three
+figures and the combined total.
+
+---
+
 ## 2. Original Estimate (OE)
 
 ### 2.1 Conversion formula
@@ -363,7 +433,7 @@ The worklog `timeSpent` always equals the subtask's **Original Estimate** after 
 When adding a worklog on a Done transition where **`timeSpent` should equal Original Estimate**, always set **`remainingEstimateSeconds`: `0`** in the worklog API payload so **Remaining** is zeroed out. Jira may otherwise leave a positive remaining estimate (e.g. prior remaining time minus logged time).
 
 - **REST worklog (`POST` / `PUT` /issue/{key}/worklog):** include `"remainingEstimateSeconds": 0` in the JSON body when logging the full OE.
-- **Atlassian MCP `addWorklogToJiraIssue`:** the tool schema may not expose `remainingEstimateSeconds`. If after logging, **`getJiraIssue`** shows `timeSpent` = `originalEstimate` but remaining time is still non-zero, run **`editJiraIssue`** with `fields.timetracking.remainingEstimate` = **`"0h"`** (or `"0m"`) and re-verify `timetracking`.
+- **Atlassian MCP `addOrEditJiraIssueWorklog (via executeWrite)`:** the tool schema may not expose `remainingEstimateSeconds`. If after logging, **`getJiraIssue`** shows `timeSpent` = `originalEstimate` but remaining time is still non-zero, run **`editJiraIssue`** with `fields.timetracking.remainingEstimate` = **`"0h"`** (or `"0m"`) and re-verify `timetracking`.
 
 ### 3.5 Closing a parent issue as **Closed** — sub-task sweep
 
@@ -374,14 +444,14 @@ When the user says an issue is **closed**, asks to **close** it, or uses phrases
 1. **Target issue:** Resolve the issue key (Story, Bug, Task, or other). Fetch `getJiraIssue` for the parent and read **`subtasks`** (or `parent = KEY` JQL) so the child list is current.
 
 2. **Parent transition to Closed:**
-   - Use **`getTransitionsForJiraIssue`** on the parent; choose the transition whose **`to.name`** is **Closed** (in UD this is often the global transition **Closed** — verify `id` per issue).
+   - Use **`listJiraIssueTransitions (via executeRead)`** on the parent; choose the transition whose **`to.name`** is **Closed** (in UD this is often the global transition **Closed** — verify `id` per issue).
    - **Idempotency:** If the parent’s **`status.name`** is already **Closed**, **skip** the parent transition and continue with sub-task steps only.
 
 3. **Sub-tasks — by current status** (apply to **each** Sub-task under that parent):
 
    | Sub-task `status.name` | Action |
    |------------------------|--------|
-   | **To Do** | Transition to **Closed** (use `getTransitionsForJiraIssue` on that sub-task; pick transition whose **`to.name`** is **Closed**). **Do not** add a worklog unless the user explicitly asks. |
+   | **To Do** | Transition to **Closed** (use `listJiraIssueTransitions (via executeRead)` on that sub-task; pick transition whose **`to.name`** is **Closed**). **Do not** add a worklog unless the user explicitly asks. |
    | **In Progress** | Transition to **Closed** (same as To Do — closing the parent means open subtasks are **Closed**, not swept to **Done**). **Do not** add a worklog on In Progress → Closed unless the user explicitly asks. |
    | **Done** | **No change** (remains **Done**). |
    | **Closed** | **No change** (idempotent). |
@@ -390,7 +460,7 @@ When the user says an issue is **closed**, asks to **close** it, or uses phrases
 
 5. **Comment (recommended):** Add a short traceability **comment on the parent** listing: parent skipped or transitioned to Closed; which sub-task keys were transitioned to **Closed** vs left as-is; **§1.11** — no issue links to sub-tasks.
 
-6. If **Closed** is not available from a sub-task’s current status, report the error and list **`getTransitionsForJiraIssue`** candidates for that key.
+6. If **Closed** is not available from a sub-task’s current status, report the error and list **`listJiraIssueTransitions (via executeRead)`** candidates for that key.
 
 **Relationship to §3.2:** §3.2 applies when the user asks to mark a **Story Done** (typically status **Done**). §3.5 applies when the user explicitly wants **Closed** and the sub-task cleanup rules above.
 
@@ -403,17 +473,17 @@ When the user asks to **open** an issue, **reopen** it, or **mark it To Do** so 
 1. **Target issue:** Resolve the issue key. Fetch `getJiraIssue` for the parent and read **`subtasks`** (or `parent = KEY` JQL).
 
 2. **Parent → To Do:**
-   - Use **`getTransitionsForJiraIssue`** on the parent. Choose a transition (or **chain** transitions) so the parent ends in **`status.name`** **To Do**.
+   - Use **`listJiraIssueTransitions (via executeRead)`** on the parent. Choose a transition (or **chain** transitions) so the parent ends in **`status.name`** **To Do**.
    - **Idempotency:** If the parent is already **To Do**, **skip** the parent transition.
    - **No direct path:** Many workflows require intermediate steps (e.g. **Closed** → **Reopened** → **To Do**, or **Done** → **Reopened** → **To Do**). Apply the shortest valid chain; if automation cannot reach **To Do**, report available transitions and the blocking status.
 
 3. **Sub-tasks — only if Closed:**
-   - For **each** Sub-task under that parent: if **`status.name`** is **Closed**, transition it to **To Do** (same rules: **`getTransitionsForJiraIssue`**, chain if needed).
+   - For **each** Sub-task under that parent: if **`status.name`** is **Closed**, transition it to **To Do** (same rules: **`listJiraIssueTransitions (via executeRead)`**, chain if needed).
    - **All other Sub-task statuses** (**Done**, **In Progress**, **To Do**, **Ready For Testing**, **Blocked**, etc.): **leave unchanged** — do **not** move them to **To Do** as part of this action.
 
 4. **Comment (optional):** Brief note on the parent: parent reopened to **To Do**; which Sub-task keys moved from **Closed** → **To Do**; **§1.11** — no issue links for hierarchy.
 
-5. If a required transition is unavailable (permissions or workflow), report the error and list **`getTransitionsForJiraIssue`** candidates.
+5. If a required transition is unavailable (permissions or workflow), report the error and list **`listJiraIssueTransitions (via executeRead)`** candidates.
 
 **Relationship to §3.5:** §3.5 closes work; §3.6 **opens** work again. Sub-task handling differs: §3.6 only touches Sub-tasks in **Closed**; §3.5 sweeps **To Do** / **In Progress** to **Closed**.
 
@@ -424,7 +494,7 @@ Use this when the user says a **Story** (e.g. **UD-32332**, **UD-32333**) or rel
 | Path | Meaning | Sub-tasks / worklogs | QA Testing comment (§7) |
 |------|---------|----------------------|-------------------------|
 | **Done** | Dev completion — Story ends in **Done** | Follow **§3.2**: discover via `parent = STORYKEY`; **blocking:** no Story **Done** until every **In Progress** Sub-task has §3.1 applied; **verify** with a second query. If Story is already **Done** but Sub-tasks remain **In Progress**, run **§3.2.2** repair (do **not** skip Sub-tasks when the user also names linked Customer Issues). | **Not** required unless the user explicitly asks for a QA / RFT comment. |
-| **RFT** | QA handoff — **Ready For Testing**, **Ready For Verification**, or shorthand **RFT** (exact **`status.name`** / transition **`to.name`** varies by issue type — use **`getTransitionsForJiraIssue`** on each key) | Transition every issue the user names (Story, linked Bug, Sub-tasks as requested) to the RFT-equivalent status that workflow allows. Add worklogs only where §3.1–§3.2 already apply or the user asks. | **Required** after (or while) moving to RFT: run **§7.5** — draft **Comment for QA Testing** in chat, get explicit confirmation, then post. **Do not** skip draft-first or post without confirmation. |
+| **RFT** | QA handoff — **Ready For Testing**, **Ready For Verification**, or shorthand **RFT** (exact **`status.name`** / transition **`to.name`** varies by issue type — use **`listJiraIssueTransitions (via executeRead)`** on each key) | Transition every issue the user names (Story, linked Bug, Sub-tasks as requested) to the RFT-equivalent status that workflow allows. Add worklogs only where §3.1–§3.2 already apply or the user asks. | **Required** after (or while) moving to RFT: run **§7.5** — draft **Comment for QA Testing** in chat, get explicit confirmation, then post. **Do not** skip draft-first or post without confirmation. |
 
 **§7 comment target (RFT path):**
 
@@ -521,7 +591,7 @@ When the user describes an issue by **title fragment** (e.g. “adhock story”,
 
 When the user asks to add a **Comment for QA Testing**, **RFT (Ready For Testing)** comment, or **customization testing comment** for QA, follow these rules strictly.
 
-**Confluence mirror (CS templates / Public → template):** [Comment for QA Testing](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3021209607/Comment+for+QA+Testing) · page ID `3021209607` · tiny `BwAUt` — use `getConfluencePage` when drafting so wording matches the published template.
+**Confluence mirror (CS templates / Public → template):** [Comment for QA Testing](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3021209607/Comment+for+QA+Testing) · page ID `3021209607` · tiny `BwAUt` — use `getConfluenceContent` when drafting so wording matches the published template.
 
 **Exemplars in Jira (match structure and tone):**
 
@@ -545,11 +615,11 @@ Add the §7 **Comment for QA Testing** when **any** of these applies:
 
 **§7.5 always applies:** draft in chat first, post only after explicit user confirmation — including on §3.7 RFT path.
 
-**Status alignment:** Prefer posting §7 **after** transitioning to the QA-facing status (or during the same session once that status is set). If Jira uses a different label than “Ready For Testing,” match the user’s intent to an available transition via **`getTransitionsForJiraIssue`**.
+**Status alignment:** Prefer posting §7 **after** transitioning to the QA-facing status (or during the same session once that status is set). If Jira uses a different label than “Ready For Testing,” match the user’s intent to an available transition via **`listJiraIssueTransitions (via executeRead)`**.
 
 ### 7.3 Comment format (mandatory template)
 
-Use this **structure** in ADF (headings, bullets, nested lists, mentions). Always **draft first in chat**, show to the user, ask for explicit confirmation, then post using `addCommentToJiraIssue` (prefer **markdown** with `[~accountid:…]` mentions, or **ADF** with `mention` nodes). Match live **UD-31982** or **UD-32268** exemplars above.
+Use this **structure** in ADF (headings, bullets, nested lists, mentions). Always **draft first in chat**, show to the user, ask for explicit confirmation, then post using `addOrEditJiraIssueComment` (prefer **markdown** with `[~accountid:…]` mentions, or **ADF** with `mention` nodes). Match live **UD-31982** or **UD-32268** exemplars above.
 
 **Greeting:** `Hi @Alok Mendhe ,` (mention node; default QA lead — user may override).
 
@@ -605,7 +675,7 @@ Optional blocks when user provides evidence: **QBD Items**, **WD Sync ReorderPoi
 5. **Draft Test Cases**: Use **§7.3** structure (node input, how to enable, steps, expected QBE outcome, brief how-it-works). Ask the user to confirm or edit.
 6. **Draft full comment**: Present the complete comment to the user **in chat first** for review.
 7. **Confirm CC**: Show the CC list and ask if the user wants to add or remove anyone.
-8. **Post**: Only after the user **explicitly confirms**, post the comment to the **target issue** using `addCommentToJiraIssue`. Use markdown or ADF with proper mentions so Jira sends notifications.
+8. **Post**: Only after the user **explicitly confirms**, post the comment to the **target issue** using `addOrEditJiraIssueComment`. Use markdown or ADF with proper mentions so Jira sends notifications.
 
 ### 7.6 @mention account IDs (known)
 
@@ -618,7 +688,7 @@ Optional blocks when user provides evidence: **QBD Items**, **WD Sync ReorderPoi
 | Aditya Farkya | — | `712020:330a4c36-5f24-465a-9a87-837a5f664b74` |
 | Arvind Chavan | — | `625e632060d67c0068d8080b` |
 
-When the user provides other names for CC or To, resolve them using `lookupJiraAccountId` before posting.
+When the user provides other names for CC or To, resolve them to an account ID first — `lookupJiraAccountId` is not a primary tool in the current connector tool set; call `discover` with "look up a jira user account id" to get the operation + which execute-family tool runs it (`executeRead`), then resolve before posting.
 
 ### 7.7 What NOT to do
 
@@ -636,7 +706,7 @@ Use when the user invokes **short** phrases such as **“mark UD-xxxx RFT”**, 
 
 **Workflow:**
 
-1. **Resolve target:** Confirm the key is the **Customer Issue** (default §7.1). If workflow allows, transition to **Ready For Testing** / **Ready For Verification** via **`getTransitionsForJiraIssue`** (common UD transition id **`251`** — verify per issue and current status).
+1. **Resolve target:** Confirm the key is the **Customer Issue** (default §7.1). If workflow allows, transition to **Ready For Testing** / **Ready For Verification** via **`listJiraIssueTransitions (via executeRead)`** (common UD transition id **`251`** — verify per issue and current status).
 2. **`getJiraIssue`** on that key: pull **Customization Details**, **Accounting**, **Store**, **Limitations** from **`description`** (ADF → plain text).
 3. **Build No:** Use the number from the user (**never invent** — §7.4). Prefix **`#`** in the comment when the user gives digits (e.g. **`#6225`**).
 4. **Local Branch — Krishna Bankar convention (default when user does not paste a branch):** Assume working branches contain **both**:
@@ -645,7 +715,7 @@ Use when the user invokes **short** phrases such as **“mark UD-xxxx RFT”**, 
    State that pattern explicitly in the **Local Branch** line so QA can search Bitbucket/Git. When the workspace has the repo, **`git branch -a`** / **`git log`** scoped to branches matching **`UD-xxxx`** **and** **`krishna`** — refine the line with the **exact** branch name; **never** invent a branch string if tooling returns nothing — keep the convention text only.
 5. **Code / diff context (optional):** When repo access exists, run **§7.9** first ( **`CustomizationConstant.cs`** + usages), then infer **Impacted Area** / **Test Cases** from **`git diff`**, **`git log --oneline`**, or Bitbucket APIs for branches matching §7.8 step 4. **Never** fabricate paths or commits; cite only evidence from tools or Jira-linked Stories.
 6. **Linked Stories:** Include a short line listing **`issuelinks`** **Story** keys related to the Customer Issue for traceability (optional bullet).
-7. **§7 comment:** Build full ADF per **§7.3** (greeting **@Alok Mendhe**, CC defaults per §7.4). **Confluence:** optional `getConfluencePage` **`3021209607`** (`BwAUt`) for wording parity.
+7. **§7 comment:** Build full ADF per **§7.3** (greeting **@Alok Mendhe**, CC defaults per §7.4). **Confluence:** optional `getConfluenceContent` **`3021209607`** (`BwAUt`) for wording parity.
 8. **Draft vs post:** Prefer **§7.5** (draft in chat → confirm). If the user supplies **Build No** **and** explicitly asks to **add the QA comment** in the **same** message, you may **post after** presenting the complete draft once in-chat (same-thread confirmation). If **Build No** is missing, **ask** — do not invent.
 
 ### 7.9 Discovering customization nodes & QB posting impact from code

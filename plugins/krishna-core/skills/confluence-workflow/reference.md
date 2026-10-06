@@ -1,8 +1,10 @@
-# Skill: Confluence Workflow (Cursor)
+# Skill: Confluence Workflow
 
 ## Overview
 
-This skill enables the **Confluence Automation Agent** to interact with the Webgility Confluence workspace via the **Atlassian MCP server** (`plugin-atlassian-atlassian`). It covers authentication, workspace context, available actions, page management, search, and evolving knowledge about the user's Confluence content.
+This skill enables the **Confluence Automation Agent** to interact with the Webgility Confluence workspace via the **claude.ai Atlassian connector** (tools named `mcp__claude_ai_Atlassian_MCP__*` — account-level, authorized in claude.ai Settings → Connectors, not a local MCP server; see `atlassian-connector-access` in memory). It covers authentication, workspace context, available actions, page management, search, and evolving knowledge about the user's Confluence content.
+
+**Confirmed working live 2026-09-23**: `getAccessibleAtlassianResources` returned the `webgility` site with read+write Confluence and Jira scopes; `getConfluenceContent` on tiny link `U4Fvmg` returned the real Overview page body from Krishna's personal space — cloud ID and space key below match exactly what the live call returned.
 
 ---
 
@@ -18,38 +20,48 @@ This skill enables the **Confluence Automation Agent** to interact with the Webg
 | Personal space ID | `2590998546` |
 | Personal space homepage ID | `2590998867` |
 
-Always pass `cloudId` = `a8ce84dd-8aa2-4dd1-b893-5b33a896f918` when calling any Atlassian MCP tool.
+Always pass `cloudId` = `a8ce84dd-8aa2-4dd1-b893-5b33a896f918` as a top-level argument on every Atlassian tool call (including `executeRead`/`executeWrite`/`executeDestructive` — never nest it inside `inputs`).
 
 ---
 
 ## MCP Tools Available
 
-### Confluence Tools
+**The exact tool-name surface under this connector changes between sessions — twice in the
+two weeks before this note (a Rovo-prefixed tool set on 2026-09-23, replaced entirely by this
+MCP-prefixed set with a `discover`/execute fallback as of 2026-10-05). Don't treat any name
+below as permanently stable.** If a call fails with "unknown tool" or similar, don't conclude
+the capability is gone — re-check with `ToolSearch` (keyword `Atlassian`) for the current
+primary-tool names, or call `discover` with the goal in plain language (e.g. "list pages in a
+Confluence space") to get the current operation name plus whether to run it through
+`executeRead`, `executeWrite`, or `executeDestructive`.
+
+### Confluence — primary tools (call directly)
 
 | Tool | Purpose |
 |---|---|
-| `getConfluenceSpaces` | List all spaces (global + personal) |
-| `getPagesInConfluenceSpace` | List pages in a space by `spaceId` |
-| `getConfluencePage` | Read a specific page (by `pageId`) |
-| `getConfluencePageDescendants` | Get child/descendant pages of a page |
-| `getConfluencePageFooterComments` | Read footer comments |
-| `getConfluencePageInlineComments` | Read inline comments |
-| `getConfluenceCommentChildren` | Get replies to a comment |
-| `createConfluencePage` | Create a new page in a space |
-| `updateConfluencePage` | Edit/update an existing page |
-| `createConfluenceFooterComment` | Add a footer comment |
-| `createConfluenceInlineComment` | Add an inline comment |
-| `searchConfluenceUsingCql` | Search using CQL (Confluence Query Language) |
-| `searchAtlassian` | Cross-product search (Jira + Confluence) |
-| `fetchAtlassian` | Generic Atlassian REST API call (ARI-based) |
+| `getConfluenceContent` | Read any content — page, blog, live doc, whiteboard, database, folder — by `content_id` (numeric ID or tiny-link key) or `content_url` |
+| `createConfluenceContent` | Create a new page, blog post, live doc, whiteboard, database, embed, or folder |
+| `updateConfluenceContent` | Edit/update existing content |
+| `searchConfluence` | Search using CQL (Confluence Query Language) — this is where `title ~ "<text>"` queries go |
+| `search` | Cross-product search (Jira + Confluence + more) — prefer CQL/JQL above when the query is exact |
+
+### Everything else — via `discover` then execute
+
+Listing pages in a space, footer/inline comments, comment replies, listing spaces, and
+similar used to be standalone tools; they are not primary tools in the current set. Call
+`discover` describing the goal (e.g. "list pages in a Confluence space", "add a footer
+comment"), then run the returned operation name via the execute-family tool `discover` names
+(`executeRead` for lookups, `executeWrite` for non-destructive creates/updates,
+`executeDestructive` for deletes). Always pass `cloudId` as a top-level argument on the
+execute call, never inside `inputs`.
 
 ### Cross-Product Tools
 
 | Tool | Purpose |
 |---|---|
-| `getAccessibleAtlassianResources` | Discover cloud IDs and available scopes |
-| `atlassianUserInfo` | Get current user info |
-| `lookupJiraAccountId` | Resolve display name → account ID |
+| `getAccessibleAtlassianResources` | List accessible sites, cloud IDs, and which products (Jira/Confluence/Bitbucket/…) are read vs. read-write |
+| `atlassianUserInfo` | Get the calling user's account ID |
+| `discover` | Find any of the ~316 Atlassian operations not in the primary tool list, by describing the goal — returns the exact operation name and which execute-family tool runs it |
 
 ---
 
@@ -107,9 +119,9 @@ Confluence "folders" are a newer content type (distinct from pages). These are t
 
 **Customizations folder (`3027959816`):** Krishna's personal knowledge base (also referred to as the **“public customizations”** folder — the working folder where customization index pages live), one page per **Customer Issue**. Each page is titled `UD-<CUSTOMER_ISSUE_ID> <SUFFIX>` (e.g. `UD-31982 CIM`, `UD-28484 R-Bug`, `UD-29162 CFC`) and follows the **Customization Notes Template** structure. New pages are **appended last** in this folder when possible. See §9 for the full workflow.
 
-**Important:** Confluence folders use `type=folder` in CQL, not `type=page`. The v2 page API (`getConfluencePage`) returns 404 for folders. To find folders, use `searchConfluenceUsingCql` with `type=folder`.
+**Important:** Confluence folders use `type=folder` in CQL, not `type=page`. The v2 page API (`getConfluenceContent`) returns 404 for folders. To find folders, use `searchConfluence` with `type=folder`.
 
-To create pages **inside** a folder, use `createConfluencePage` with `parentId` set to the folder's content ID.
+To create pages **inside** a folder, use `createConfluenceContent` with `parentId` set to the folder's content ID.
 
 ---
 
@@ -237,7 +249,7 @@ Common CQL queries the agent should use:
 | Pages I modified | `type=page AND contributor=currentUser() order by lastModified desc` |
 | Spaces created recently | `type=space AND created >= 'YYYY-MM-DD'` |
 | Folders in a space | `type=folder AND space.key="<KEY>" order by created desc` |
-| Pages under a parent | Use `getConfluencePageDescendants` with `pageId` |
+| Pages under a parent | Use `getConfluenceContentDescendants` with `pageId` |
 
 ---
 
@@ -246,32 +258,32 @@ Common CQL queries the agent should use:
 ### 1. Read a page
 
 1. If user gives a URL, extract the page ID or space key + title from the URL.
-2. Call `getConfluencePage` with `pageId` and `cloudId`.
+2. Call `getConfluenceContent` with `pageId` and `cloudId`.
 3. Return the content in a readable format.
 
 ### 2. Create a page
 
 1. Determine the target space (default: personal space `2590998546`).
 2. Determine the parent (default: personal homepage `2590998867`; or a folder ID if placing inside a folder).
-3. Call `createConfluencePage` with `spaceId`, `title`, `body`, and optionally `parentId`.
+3. Call `createConfluenceContent` with `spaceId`, `title`, `body`, and optionally `parentId`.
 4. Update the **Known Pages** section in this skill file via `/agent-learning`.
 
 ### 3. Create pages inside a folder
 
-1. Use the folder's content ID as `parentId` in `createConfluencePage`.
+1. Use the folder's content ID as `parentId` in `createConfluenceContent`.
 2. For sub-pages, use the parent page's ID as `parentId`.
 3. Update the hierarchy tree in this skill file.
 
 ### 4. Update a page
 
 1. Find the page by title search or known ID.
-2. Read the current content with `getConfluencePage`.
-3. Call `updateConfluencePage` with the updated body and incremented `version.number`.
+2. Read the current content with `getConfluenceContent`.
+3. Call `updateConfluenceContent` with the updated body and incremented `version.number`.
 4. Confirm success.
 
 ### 5. Search across Confluence
 
-1. Use `searchConfluenceUsingCql` for structured queries.
+1. Use `searchConfluence` for structured queries.
 2. Use `searchAtlassian` for cross-product (Jira + Confluence) search.
 3. Present results with title, space, URL, and excerpt.
 
@@ -283,7 +295,7 @@ Confluence now supports native folders (content type `folder`). Pages can be cre
 
 Use when the user asks for a **HubSpot note**, **CS installation handoff**, or **Customization Delivery** wording after dev + QA.
 
-**Source of truth:** `getConfluencePage` (`pageId` **`3021275138`**, tiny **`AgAVt`**) — [Customization Delivery](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3021275138/Customization+Delivery). The page is **template only**: bracketed `[FILL …]` / `[INSERT …]` placeholders and fixed boilerplate — **no** pre-filled example from a specific customer or Jira key. Each new customization **replaces every placeholder** from the **current** Customer Issue and release; **never** copy body text from a different ticket or prior note.
+**Source of truth:** `getConfluenceContent` (`pageId` **`3021275138`**, tiny **`AgAVt`**) — [Customization Delivery](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3021275138/Customization+Delivery). The page is **template only**: bracketed `[FILL …]` / `[INSERT …]` placeholders and fixed boilerplate — **no** pre-filled example from a specific customer or Jira key. Each new customization **replaces every placeholder** from the **current** Customer Issue and release; **never** copy body text from a different ticket or prior note.
 
 **Agent output rules (mandatory):**
 
@@ -358,7 +370,7 @@ CC:
 
 Use when the user asks for a **Comment for QA Testing**, **RFT**, or **Ready For Testing** Jira comment on a customization **Customer Issue**.
 
-**Source of truth (preferred):** `getConfluencePage` with `pageId` **`3021209607`** (tiny **`BwAUt`**). Canonical URL: [Comment for QA Testing](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3021209607/Comment+for+QA+Testing).
+**Source of truth (preferred):** `getConfluenceContent` with `pageId` **`3021209607`** (tiny **`BwAUt`**). Canonical URL: [Comment for QA Testing](https://webgility.atlassian.net/wiki/spaces/~712020cb0bd6e5b43649f9a0f56211a8cc8799/pages/3021209607/Comment+for+QA+Testing).
 
 **Repo skill (must stay aligned):** `jira-workflow.skill.md` **§7**, **§7.8** (minimal “mark UD-xxxx RFT” + branch pattern **UD-xxxx** + **krishna**), **§7.9** (when the node is unknown: **`CustomizationConstant.cs`** + usages → full `PREFIX_<ProfileID>` and, if `GetCustomizationNodeValue(…, ':')`, the **full WD line** `KEY:VALUE` e.g. `QBTXN_CUSTOMNUMBERING_14:ABC-1234`; **Impacted Area** = QB **single** vs **consolidation** + **RefNumber** + **QBD txn types** from code e.g. **Invoice / Sales Order / Sales Receipt**; **Test Cases** = full line, how to enable, steps, expected QBE outcome, short how-it-works), and **§3.7**. Default post target is the **Customer Issue**; **Bug-Fix** Stories with only a linked **Bug** → default **Bug** per §3.7 / §7.1. Draft in chat, ADF mentions, post after confirmation per §7.5 / §7.8.
 
@@ -406,10 +418,10 @@ This aligns with **`jira-workflow.skill.md` §7.9** (Jira RFT) so Jira QA commen
 1. `getJiraIssue` for the Customer Issue and linked Stories (CFC/CIM/Bug as needed) — include **`description`** on the Customer Issue. Pull **status**, HubSpot links, and **scan `description` for backup URLs and customer creds** to fill template lines (see above). **Do not** paste the entire description into Confluence as prose. **Skip sub-tasks** unless the user explicitly asked to include them.
 2. **Customization node:** Run **§9.1** against `CustomizationConstant.cs` before writing the page body (when the repo is present in the workspace).
 3. CQL-dedupe `title="UD-XXXXX <SUFFIX>" AND space.key="~712020cb0bd6e5b43649f9a0f56211a8cc8799"`; if it exists, offer to update instead.
-4. `createConfluencePage` with `spaceId=2590998546`, `parentId=3027959816` (Customizations folder), `title=UD-<ID> <SUFFIX>`, `contentFormat=markdown`. **Placement:** create as a **new child of `3027959816`** so it appears **at the end / last** among siblings (Confluence typically orders new pages after existing ones; if your MCP/API exposes an explicit “after” or position for ordering, prefer **last**). Do not insert in the middle of the folder unless the user asks.
+4. `createConfluenceContent` with `spaceId=2590998546`, `parentId=3027959816` (Customizations folder), `title=UD-<ID> <SUFFIX>`, `contentFormat=markdown`. **Placement:** create as a **new child of `3027959816`** so it appears **at the end / last** among siblings (Confluence typically orders new pages after existing ones; if your MCP/API exposes an explicit “after” or position for ordering, prefer **last**). Do not insert in the middle of the folder unless the user asks.
 5. Body = **default** short line list per exemplar pages (heading, Customer issue, Story and/or CFC lines as required by the case, HubSpot, **Customization node from §9.1**, blank Backup/Dropbox, short Notes). Full Jira URLs + status for each line. **No** default paragraphs, reproduction steps, status ticker, or triage narrative. **Extras** only if the user asked.
 
-**Update:** resolve page by title → `getConfluencePage` → refresh Jira URL lines with `getJiraIssue` when statuses may have changed → re-run **§9.1** for **Customization node:** if code may have changed → `updateConfluencePage`.
+**Update:** resolve page by title → `getConfluenceContent` → refresh Jira URL lines with `getJiraIssue` when statuses may have changed → re-run **§9.1** for **Customization node:** if code may have changed → `updateConfluenceContent`.
 
 **Rules:**
 
@@ -480,9 +492,9 @@ Confluence error: <error description>
 
 | Issue | Solution |
 |---|---|
-| `401 Unauthorized` | Check Atlassian MCP auth — may need to re-authenticate via `mcp_auth` |
-| `404 Not Found` | Verify page/space ID; for folders use CQL search instead of `getConfluencePage` |
+| `401 Unauthorized` | claude.ai Atlassian connector needs reauthorizing — Settings → Connectors → reconnect Atlassian |
+| `404 Not Found` | Verify page/space ID; for folders use CQL search instead of `getConfluenceContent` |
 | `403 Forbidden` | User may not have permission to that space; check space permissions |
-| MCP not responding | Verify `plugin-atlassian-atlassian` is enabled in Cursor MCP settings |
+| Tool not found via `ToolSearch` at all | Connector isn't wired into this session — see `atlassian-connector-access` in memory for how to tell this apart from a real outage |
 | Stale page catalog | Re-run `getPagesInConfluenceSpace` and update Known Pages in this file |
 | Folder not found via page API | Folders are `type=folder`, not `type=page`; use CQL with `type=folder` |

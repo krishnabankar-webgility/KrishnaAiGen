@@ -31,7 +31,7 @@ The file is written for GitHub Copilot. Map its tool names as you go:
 | `execute` | `Bash` or `PowerShell` |
 | `agent` | the `Agent` tool |
 | `todo` | handled natively — ignore |
-| `atlassian/*` | `mcp__claude_ai_Atlassian_Rovo__*` |
+| `atlassian/*` | `mcp__claude_ai_Atlassian_MCP__*` |
 | `mssql-winauth/*`, `mssql-sqlauth/*` | `mcp__mssql-winauth__*`, `mcp__mssql-sqlauth__*` |
 
 Its `handoffs:` block lists other agents — invoke those with the `Agent` tool using

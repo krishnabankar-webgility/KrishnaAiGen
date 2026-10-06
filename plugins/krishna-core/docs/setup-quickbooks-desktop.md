@@ -12,9 +12,10 @@ C:\Users\Public\Documents\Intuit\QuickBooks\Company Files\SellFromHome.qbw
 ```
 
 Krishna's local testing/sandbox QBD company file — the one `UnifyDB` posts against locally.
-Read/write **against this specific file** is fine for testing (it's local and disposable, not a
-customer's data) — but see below: nothing today actually gives Claude a live connection to
-drive that read/write itself. `.qbw` is a proprietary QuickBooks database format, not something
+**Full read and write access is explicitly allowed** against this specific file (it's local and
+disposable, not a customer's data). Credentials: Windows user env var **`QBD_CREDS`**
+(`un:<username>, pwd:<password>`) — but see below: nothing today actually gives Claude a live
+connection to drive that read/write itself. `.qbw` is a proprietary QuickBooks database format, not something
 readable as plain bytes, so "access" here means through QuickBooks Desktop's own QBXML/QBFC
 automation, not direct file I/O — `qbsdklog.txt` (`C:\ProgramData\Intuit\QuickBooks\qbsdklog.txt`)
 is where every request/response WD already sends to it gets logged, and is the fastest way to

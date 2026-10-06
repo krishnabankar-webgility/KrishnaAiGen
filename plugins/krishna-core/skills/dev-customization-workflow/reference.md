@@ -368,7 +368,7 @@ $base64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-token-aut
 $base64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${username}:${token}"))
 ```
 
-**Important:** `BITBUCKET_TOKEN` must be an **HTTP Access Token** (created from Bitbucket repository settings → Access tokens), NOT an Atlassian API token from `id.atlassian.com`.
+**Important:** `BITBUCKET_PASSWORD` must be an **HTTP Access Token** (created from Bitbucket repository settings → Access tokens), NOT an Atlassian API token from `id.atlassian.com`.
 
 ### ✅ Threaded Reply API Format
 
