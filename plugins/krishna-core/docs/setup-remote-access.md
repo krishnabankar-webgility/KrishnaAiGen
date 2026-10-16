@@ -21,10 +21,18 @@ run by hand, not by "seeing" the VM's screen.
    ```
    Run this once, at a real prompt, so the password only ever exists in your typed input and the
    protected env-var store — never paste it into a file, a chat message, or a script argument.
-3. **First-time WinRM enablement on the target VM** needs one RDP/console session to run
+3. **VPN itself also needs its own pair** — `VPN_UN`/`VPN_PWD` (same shape, same command pattern
+   as above). This is the corp domain account Sophos Connect authenticates with (XAuth) — a
+   **different identity from `RDP_UN`/`RDP_PWD`**, which is a VM-local account. Don't reuse one
+   for the other; `vm-manager.ps1`'s `Connect-Vpn` actually did exactly that for a while (a real
+   bug, fixed 2026-10-09) and silently used the wrong credential every time it tried to
+   reconnect. With both set, `vm-manager.ps1 vpn-connect` can reconnect VPN on its own whenever
+   it's down — see the standing rule in the root `CLAUDE.md` and `vpn-smb-access`'s opening
+   section.
+4. **First-time WinRM enablement on the target VM** needs one RDP/console session to run
    `Enable-PSRemoting` and the registry/firewall fixes in the `remote-vm-management` skill —
    after that, WinRM works without console access again.
-4. On this machine, `TrustedHosts` needs the VM's IP added (also in that skill, Step 2) — one
+5. On this machine, `TrustedHosts` needs the VM's IP added (also in that skill, Step 2) — one
    elevated command, persists afterward.
 
 ## A real secret was found and fixed while writing this doc
@@ -64,5 +72,5 @@ machine, e.g. `RDP_UN_JUMPBOX2`).
 |---|---|
 | VM inventory, root-cause table, diagnostic commands | `plugins/krishna-core/skills/remote-vm-management/SKILL.md` |
 | MTU/Kerberos/SMB fixes (VPN-layer, not VM-specific) | `plugins/krishna-core/skills/vpn-smb-access/SKILL.md` |
-| Credentials | Windows **user** environment variables (`RDP_UN`, `RDP_PWD`) — never `.env`, never a repo file |
+| Credentials | Windows **user** environment variables — `RDP_UN`/`RDP_PWD` (VM-local RDP account) and `VPN_UN`/`VPN_PWD` (corp domain account, separate) — never `.env`, never a repo file |
 | The `vm-manager.ps1` toolkit itself | `KrishnaAiGen/scripts/vm-manager.ps1` |

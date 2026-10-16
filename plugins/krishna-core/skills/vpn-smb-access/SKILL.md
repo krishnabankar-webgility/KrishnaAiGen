@@ -5,6 +5,31 @@ description: 'Use when: cannot access UNC path over VPN, network share not acces
 
 # VPN + SMB Network Share Access Fix
 
+## Before anything else: is VPN even connected? Check and self-heal first
+
+**Any time a task fails because VPN looks disconnected — a DB/ES/proxy host unreachable, a UNC
+share timing out, `ping`/`Test-NetConnection` failing to an internal host — check and reconnect
+it yourself before stopping to ask the user.** The credentials and the script to do this already
+exist:
+
+```powershell
+C:\WG-Agentic\KrishnaAiGen\scripts\vm-manager.ps1 vpn-check    # reports Connected / Disconnected
+C:\WG-Agentic\KrishnaAiGen\scripts\vm-manager.ps1 vpn-connect  # connects if needed, no-ops if already up
+```
+
+This uses Sophos Connect (`sccli.exe`) with the **`VPN_UN`/`VPN_PWD`** Windows *user* env vars
+(the corp domain account — a separate credential from `RDP_UN`/`RDP_PWD`, which is the VM-local
+RDP account; don't conflate them). Only stop and ask the user if `vpn-connect` itself reports
+**FAILED** — that means the credential or the Sophos profile itself needs attention, which isn't
+something to guess around. A silent "VPN not connected" stop without having tried this first is
+the bug to avoid, not the correct caution.
+
+**Found and fixed 2026-10-09:** `Connect-Vpn` in `vm-manager.ps1` was actually reading
+`RDP_UN`/`RDP_PWD` instead of `VPN_UN`/`VPN_PWD` — the two were wrongly assumed to be the same
+credential (the script's own comment said "VPN uses same creds"). That's why self-reconnecting
+wasn't working even when it was attempted: wrong account was being sent to `sccli enable`. Fixed
+by adding a dedicated `Get-VpnCreds` reading the correct pair.
+
 ## Skill Purpose
 Fix issues accessing Windows network shares (UNC paths like `\\server\share`) over VPN connections when standard authentication fails or hangs.
 

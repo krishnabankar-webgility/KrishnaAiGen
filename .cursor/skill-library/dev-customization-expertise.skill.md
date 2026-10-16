@@ -190,6 +190,15 @@ Before presenting code changes for review:
 - [ ] No unnecessary, redundant, or debug code remains
 - [ ] Build is clean — no errors or warnings
 - [ ] Unit tests written and passing
+- [ ] Confirmed: absent node/setting reproduces existing behavior exactly
+- [ ] Data written under the node traced to **every reader**: when the gated code fills a shared column/DTO field, grep its consumers. List the ones that now see a value. Any reader outside the requirement is named in the impact analysis, or kept unchanged.
+- [ ] Installation-wide node (no profile ID) with a store-specific requirement: every gate also checks the store type
+- [ ] Jira URL / `UD-####` appears **only** on the node line in `CustomizationConstant.cs`. No ticket comments at the gated call sites.
+- [ ] Fetch `origin/develop` before adding any shared helper and again before shipping; grep it for the same method name/signature (a same-signature copy merges cleanly, then fails to compile with CS0111). Reuse develop's helper.
+- [ ] Merge latest `develop` into the ticket branch before shipping; resolve `CustomizationConstant.cs` tail conflicts as develop's nodes first, ours last; then no conflict markers, no duplicate methods, `git diff origin/develop` shows only our change, build clean.
+- [ ] Use `UtilityFunctions.IsNullOrBlank` / `ToEqual` from the first draft, not raw `string.IsNullOrWhiteSpace` / `.Trim().ToUpper().Equals()` on added lines.
+- [ ] A value written to a bounded DB column is length-guarded against the real schema (`wgDB.sql` / `wgDB_alter.sql`).
+- [ ] Every persistence path covered: insert **and** update (e.g. Shopify incremental download UPDATEs existing `Temp_Items` rows via `UpdateStoreDataRow`)
 
 ## Post-implementation routine
 

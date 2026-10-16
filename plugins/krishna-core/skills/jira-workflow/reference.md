@@ -534,6 +534,31 @@ When the request is **only** to complete work — mark a **Story** **Done** (§3
 - You **may** update story points.
 - If a transition fails, capture the error, add a comment if appropriate, and tell the user what is missing.
 
+### 4.1 One write path failing is not "no write access" — try the other path first
+
+Confirmed 2026-10-16 on UD-32710: the Atlassian MCP connector (`getAccessibleAtlassianResources`
+reports Jira as `"read-write"`) reliably reads, comments, and transitions issues — `getJiraIssue`
+→ `listJiraIssueTransitions` → `addOrEditJiraIssueComment` → `transitionJiraIssue`, with a
+read-back after the transition to confirm it actually landed (don't trust the API's success
+message alone — read the issue back). The same day, `ship-to-qa`'s own Jira step (§6 of its
+skill) uses a **separate, older path** — raw PowerShell `Invoke-RestMethod` with
+`JIRA_EMAIL`/`JIRA_API_TOKEN`/`JIRA_BASE_URL` — and that path's "transition not found" case used
+to just warn and silently move on, which looked identical to "the connector can't write" from the
+user's side even though the connector was fine the whole time.
+
+**Standing rule:** if one Jira write mechanism fails or can't find what it needs (a transition
+name doesn't match, a tool errors as unknown, a script step warns-and-skips), **do not conclude
+write access is broken and do not silently continue** — retry the same action through the other
+available mechanism before reporting failure:
+1. Primary Atlassian MCP tool errors unknown → `discover` the operation, retry via
+   `executeRead`/`executeWrite` (see the tool-name-churn note at the top of this file).
+2. A script-driven raw-REST step (ship-to-qa's §6, or similar) can't find a matching transition →
+   fall back to the Atlassian MCP connector directly (`listJiraIssueTransitions` +
+   `transitionJiraIssue`) for that one ticket instead of leaving it unresolved.
+3. Only after an alternate path has also been tried does this become "tell the user what's
+   missing" (§4 above) — and when it does, show the actual list of available transitions/fields
+   so the user isn't guessing either.
+
 ---
 
 ## 5. Sprint Lifecycle

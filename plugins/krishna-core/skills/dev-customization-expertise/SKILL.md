@@ -238,6 +238,14 @@ Before presenting code changes for review:
 - [ ] Comments on new code are 1-3 lines, only where the why isn't obvious
 - [ ] Code review pass run (skill if available, generic checklist otherwise) — findings fixed or handled
 - [ ] Confirmed: absent node/setting reproduces existing behavior exactly
+- [ ] Data written under the node traced to **every reader**: when the gated code fills a shared column/DTO field, grep its consumers. List the ones that now see a value. Any reader outside the requirement is named in the impact analysis, or kept unchanged. (UD-33188: `Temp_Items.VarientOption` also feeds Create & Map, the POS grid and the "Item Option" custom-field mapping.)
+- [ ] Installation-wide node (no profile ID) with a store-specific requirement: every gate also checks the store type, so other channels on the same install are untouched
+- [ ] Jira URL / `UD-####` appears **only** on the node line in `CustomizationConstant.cs`. No ticket comments at the gated call sites (the node itself is the reference).
+- [ ] **Fetch `origin/develop` before adding any shared helper and again before shipping.** Grep develop for the same method name/signature. A same-signature copy merges with no textual conflict, then fails to compile (CS0111). Reuse develop's helper. (UD-33188: `IsCustomizationNodeEnabled(string)` landed on develop via UD-33334 after the branch was cut.)
+- [ ] Merge latest `develop` into the ticket branch before shipping. Conflicts at the end of `CustomizationConstant.cs` are normal (both sides append): keep develop's nodes first, ours last. Afterwards check: no conflict markers, no duplicate methods, `git diff origin/develop` shows only our change, build clean.
+- [ ] Use the house helpers from the first draft: `UtilityFunctions.IsNullOrBlank` / `ToEqual`, never raw `string.IsNullOrWhiteSpace` / `.Trim().ToUpper().Equals()` on added lines (the PR review bot flags both). Copying a neighbouring legacy branch does not exempt you.
+- [ ] A value written to a bounded DB column is length-guarded (check the real schema in `wgDB.sql` / `wgDB_alter.sql`, not the local test DB): one over-long value fails the whole batch insert.
+- [ ] Every persistence path covered: insert **and** update (e.g. Shopify incremental download UPDATEs existing `Temp_Items` rows via `UpdateStoreDataRow`, it does not re-insert them)
 
 ## Post-implementation routine
 

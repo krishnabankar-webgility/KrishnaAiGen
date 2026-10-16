@@ -23,6 +23,16 @@ function Get-RdpCreds {
     return @{ User = $un; Pass = $pw }
 }
 
+function Get-VpnCreds {
+    # Separate from RDP creds on purpose: VPN (XAuth via Sophos Connect) uses the
+    # corp domain account (krishna.bankar), RDP_UN/RDP_PWD is "<vm-ip>\<account>",
+    # a different, VM-local identity. Do not fold these back together.
+    $un = [System.Environment]::GetEnvironmentVariable("VPN_UN", "User")
+    $pw = [System.Environment]::GetEnvironmentVariable("VPN_PWD", "User")
+    if (-not $un -or -not $pw) { throw "VPN_UN / VPN_PWD not set in User env vars" }
+    return @{ User = $un; Pass = $pw }
+}
+
 function Test-VpnConnected {
     $out = & $SccliPath get -n $VpnName -t endpoints 2>&1 | Out-String
     return $out -match "Connected: \d+ \("
@@ -31,8 +41,7 @@ function Test-VpnConnected {
 function Connect-Vpn {
     if (Test-VpnConnected) { Write-Host "VPN already connected." -ForegroundColor Green; return $true }
     Write-Host "Connecting VPN..." -ForegroundColor Yellow
-    $creds = Get-RdpCreds
-    # VPN uses same creds
+    $creds = Get-VpnCreds
     & $SccliPath enable -n $VpnName -u ($creds.User -replace ".*\\","") -p $creds.Pass 2>&1 | Out-Null
     Start-Sleep -Seconds 3
     if (Test-VpnConnected) { Write-Host "VPN connected." -ForegroundColor Green; return $true }

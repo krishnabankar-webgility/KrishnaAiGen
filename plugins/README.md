@@ -67,9 +67,10 @@ KrishnaAiGen/
                         daily-update, dev-customization, sys-troubleshoot, kibana, ship-to-qa,
                         krishnaaigen router, krishnaaigen-autonomous, agent-learning,
                         skill-author, memory-gardener)
-      skills/      19   the 17 ported .cursor/skill-library packs + ticket-context +
+      skills/      21   the 17 ported .cursor/skill-library packs + ticket-context +
                         resume-work + krishnaaigen-skill-evolution (rewritten for the
-                        plugin era — see "Standing behavior" below)
+                        plugin era — see "Standing behavior" below) + cis-db-access
+                        (new skills land here as recurring needs surface)
       commands/    14   thin launchers onto the agents above, + /agents-list
       hooks/            SessionStart preflight
       scripts/          preflight.ps1, approve-mcp-trust.py (see "One-time setup extras")

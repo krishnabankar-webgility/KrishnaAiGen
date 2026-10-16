@@ -11,6 +11,27 @@ copies still use the old name:
 
 ---
 
+## Krishna's standing defaults for a bare "execute ship-to-qa" (2026-10-06, overrides anything below)
+
+1. **Commit + push before building.** Commit the customization's uncommitted changes on the ticket branch and push. Message:
+   `<JIRA-ID> : <new fix/handling or Jira title>`. **Never commit `AuthenticationController.cs` or `apiConfig.xml`** (manual
+   local changes).
+2. **Branch** = `<JIRA-ID>_Krishna`, with the Jira ID taken from the prompt file (`Reference/<ID>/<ID>_Prompts.txt`), if the
+   current code branch matches. Confirm only on a mismatch.
+3. **Bug on a customer issue:** build from the customer issue's branch. RFT 251 + assignee + full comment go on the **bug**. The
+   customer issue gets only a short new-build-info comment.
+4. **Jira comment:** module/functionality-level impact areas only. **No test cases, ever** (this overrides §8.1 "Test Cases").
+   - **Customer issue:** add a simple execution workflow, from "add the node" to the output.
+   - **Bug:** a short RCA plus the handling and the newly impacted areas.
+   - The FYI/CC/field format is in Krishna's memory note `ship-to-qa-workflow`.
+5. **QA share (when not given):** the newest `\\192.168.0.95\Kits\Unify\WebgilityInstaller_<version>` folder, plus
+   `\Customizations`. Create `Customizations` if it is missing.
+6. **Slack:** `func-wd-installer-creation-updates` (pre-build) and `func-wd-build-updates` (QA notify, real `<@id>` mention).
+7. **QA assignee:** default **Rajat Lodhi** unless named.
+8. **Update the Confluence Customization Notes page** for the main Customer Issue (`confluence-workflow` §9, folder `3027959816`, page titled `UD-<CUSTOMER_ISSUE_ID> <SUFFIX>`) with whatever is now known and wasn't before: **Build No**, **Customization node**, and **PR** link, at minimum — check the page for any other blank field this run's work can now fill (the template leaves Build/PR/node blank until a build actually exists, per §9's "never invent" rule; after a successful ship this is the moment to fill them in). Do this after Step 6 (artifact confirmed) rather than waiting for the whole pipeline to finish, so it isn't missed if a later step is skipped.
+
+---
+
 ## ⚡ Preferred: Autonomous Script (97% Token Reduction)
 
 **Use the autonomous PowerShell script instead of manual step-by-step AI orchestration.**
@@ -668,12 +689,23 @@ if ($rftTransition) {
         -Body $transBody -TimeoutSec 15
     Write-Host "  ✅ Jira status → $($rftTransition.name) (ID: $($rftTransition.id))"
 } else {
-    Write-Warning "  ⚠️ RFT transition not found. Available: $($transitions.transitions.name -join ', ')"
-    Write-Host "  → Ask user which transition to use, or skip."
+    Write-Warning "  ⚠️ RFT transition not found via this script's own transition list."
+    Write-Host "  → DO NOT stop here or silently skip — this looks identical to 'Jira write is"
+    Write-Host "    broken' from the user's side even when it isn't (confirmed 2026-10-16, see"
+    Write-Host "    jira-workflow skill §4.1). Fall back to the Atlassian MCP connector directly"
+    Write-Host "    for this one ticket: call listJiraIssueTransitions, then transitionJiraIssue"
+    Write-Host "    with whichever id matches RFT/Ready For Testing/QA. Only if THAT also can't"
+    Write-Host "    find a matching transition, tell the user and show the full transition list."
 }
 
 Write-Host "✅ [Step 7 — Jira Assignee + RFT] DONE"
 ```
+
+**If the PowerShell step above hits the `else` branch, Claude itself (not the script) finishes the
+job**: call the Atlassian MCP connector's `listJiraIssueTransitions` for `$jiraTicketId`, find the
+RFT/Ready-For-Testing/QA transition from that list, call `transitionJiraIssue`, then read the issue
+back to confirm the status actually changed before reporting Step 7 as done. Don't report ship-to-qa
+as complete with the status silently unchanged.
 
 ---
 

@@ -1,4 +1,12 @@
-# QuickBooks Desktop — current state (no live connector exists)
+# QuickBooks Desktop — superseded by setup-qbd-sellfromhome.md
+
+**2026-10-13: Krishna asked for this to be built.** See
+[setup-qbd-sellfromhome.md](setup-qbd-sellfromhome.md) for the live setup — a direct QBXMLRP2
+connection to the `SellFromHome.qbw` sandbox, same automation layer `unify-enterprise` itself
+uses. This file stays as the historical record of the gap and the reasoning that went into the
+build (why QBXMLRP2 over QBFC, the one-time approval dialog, same-file concurrent access).
+
+---
 
 Being direct about this one: **there is no MCP server, plugin, or connector today that gives
 Claude a live connection to QuickBooks Desktop.** Checked `wg-ai-workspace/.mcp-servers/` — the

@@ -13,12 +13,12 @@ Full operational rules live in **`reference.md`** next to this file. **Read `ref
 - (line 240) 1a. Implementation plan comment — post to Jira before code changes start; §1a.1 is the general Story Point evaluation rule (complexity-based, Fibonacci only) — applies to ANY requested SP evaluation, not just this comment
 - (line 302) 2. Original Estimate (OE)
 - (line 367) 3. Marking Done and Worklogs
-- (line 529) 4. Status and Permissions
-- (line 539) 5. Sprint Lifecycle
-- (line 576) 6. Finding issues by summary and updating subtasks
-- (line 590) 7. Comment for QA Testing (Ready For Testing / RFT)
-- (line 735) 8. Skill maintenance
-- (line 741) 9. Session notes file (scratch, not agent training)
-- (line 753) 10. Output Format
+- (line 529) 4. Status and Permissions — §4.1 is the Jira write-resilience rule: one write path failing isn't "no access," try the other path before reporting failure
+- (line 564) 5. Sprint Lifecycle
+- (line 601) 6. Finding issues by summary and updating subtasks
+- (line 615) 7. Comment for QA Testing (Ready For Testing / RFT)
+- (line 760) 8. Skill maintenance
+- (line 766) 9. Session notes file (scratch, not agent training)
+- (line 778) 10. Output Format
 
 > Ported from `.cursor/skill-library/jira-workflow.skill.md` (canonical Cursor/Copilot copy). Keep both in sync — see the `krishnaaigen-skill-evolution` skill.

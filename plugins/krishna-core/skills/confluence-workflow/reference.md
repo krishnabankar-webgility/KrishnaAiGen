@@ -423,6 +423,12 @@ This aligns with **`jira-workflow.skill.md` §7.9** (Jira RFT) so Jira QA commen
 
 **Update:** resolve page by title → `getConfluenceContent` → refresh Jira URL lines with `getJiraIssue` when statuses may have changed → re-run **§9.1** for **Customization node:** if code may have changed → `updateConfluenceContent`.
 
+**Triggered automatically by `ship-to-qa`:** once a build ships successfully, its standing
+defaults (see that skill's reference.md) include coming back here to fill in **Build No**,
+**Customization node**, and **PR** on this same page — those fields are deliberately left
+blank until a real build/PR exists (see the "never invent" rule below), and a successful ship
+is the moment they stop being blank.
+
 **Rules:**
 
 - Parent is **always** the Customizations folder (`3027959816`). New pages **last** in that folder when possible.

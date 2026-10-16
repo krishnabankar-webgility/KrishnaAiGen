@@ -23,9 +23,25 @@ Before anything else, read the provided Jira ticket and extract:
 
 ---
 
+### STEP 0.5 — Check for an Existing Generic Configuration First
+
+> Mandatory, and **before** Step 1 — cheaper than a customization node and often already
+> shipped. Skipping straight to "what node do we need" misses the case where a plain
+> setting/toggle already does the job for every customer, not just this one.
+
+- Look for an existing **generic setting, UI toggle, or configuration** (not gated behind any
+  customization node) that already fulfills the request, fully or partly, for any customer who
+  turns it on.
+- If one fully covers the request: that's the answer — no customization, no new node. Say so
+  and stop here.
+- If it covers **part** of the request, carry the remaining gap into Step 1 (it may be filled
+  by an existing node, or need new work) — don't restart the analysis from scratch once a
+  partial generic-config answer is found.
+
 ### STEP 1 — Check for Existing Customization Node Solution
 
-> This step is **mandatory** for all ticket types: CIM, FR, and CFC.
+> This step is **mandatory** for all ticket types: CIM, FR, and CFC. Reached when Step 0.5
+> found no (or only a partial) generic-configuration answer.
 
 #### 1.1 — Locate All Customization Nodes
 - Open `CustomizationConstant.cs` in the **unify-enterprise** workspace.
@@ -33,13 +49,18 @@ Before anything else, read the provided Jira ticket and extract:
 - Do **not** look for nodes anywhere else.
 
 #### 1.2 — Find a Matching Node or Combination
-Evaluate whether the customer request can be fulfilled by:
+Evaluate whether the customer request can be fulfilled by, in this order:
 
 | Scenario | Description |
 |----------|-------------|
 | **Single Node** | One existing node fully covers the requirement |
 | **Combination of Nodes** | Two or more nodes together fulfill the requirement |
+| **Config + Node(s)** | The Step 0.5 generic setting plus an existing node together cover it |
 | **Nodes + Extra Handling** | Existing node(s) with minor additional changes cover the requirement |
+| **Partial + New Work** | Existing settings/node(s) cover part of the requirement; the remaining part is genuinely new — scope the new work to just that remainder, not the whole request |
+
+Only once every row above has been ruled out does this become new, from-scratch work —
+and only then move to Step 2's architecture-level analysis.
 
 #### 1.3 — Understand the Node's Workflow
 For any candidate node found:
@@ -88,8 +109,19 @@ Present a structured plan covering:
 7. All transaction types or flows in scope
 8. Build targets affected by the changes
 
+**Write the plan to its own implementation file** at
+`Reference\<TICKET-ID>\<TICKET-ID>_Implementation.md` (create the ticket folder if it doesn't
+exist yet) — this is a separate file from the plan presented in chat, not just a copy of the
+chat message. Keep the chat message itself short: a summary, plus the file path. **Any open
+question, blocker, or confirmation needed goes in the chat itself** (concise, summarized), not
+buried inside the implementation file — the file is the plan, the chat is where decisions get
+made. Skip re-flagging anything already clarified earlier in the conversation or resolved by
+code analysis.
+
 > **Present the plan. Do NOT begin coding until it is reviewed and approved.**
 > Incorporate feedback and re-present if corrections are requested.
+> Once approved, this is also the trigger point for `jira-workflow` §1a — post the
+> summarized plan (with Fibonacci Story Points) as a Jira comment **before** Step 3 begins.
 
 ---
 

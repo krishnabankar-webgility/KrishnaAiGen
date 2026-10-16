@@ -1,5 +1,33 @@
 {
   "mcpServers": {
+    "cis-db": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/cis-db/server.mjs"
+      ]
+    },
+    "quickbooks-desktop": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/quickbooks-desktop/quickbooks-desktop.csproj"
+      ],
+      "env": {
+        "QBD_COMPANY_FILE": "C:\\Users\\Public\\Documents\\Intuit\\QuickBooks\\Company Files\\SellFromHome.qbw",
+        "QBD_APP_NAME": "KrishnaAiGen-QBD-MCP"
+      }
+    },
+      "shopify": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/shopify/server.mjs"
+      ]
+    },
     "bitbucket": {
       "command": "node",
       "args": [

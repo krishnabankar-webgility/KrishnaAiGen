@@ -108,10 +108,17 @@ This is the local, testing-only company file `UnifyDB` posts against — **full 
 access is explicitly allowed** against *this specific file*, since it's local and testing-only,
 not a customer's data. Note it's a proprietary QuickBooks file format, not something readable as
 plain bytes — "read/write" here means through QuickBooks Desktop's own QBXML/QBFC automation
-(see `qbsdklog.txt` above to see what was actually sent), not direct file I/O. **There is
-currently no MCP server or plugin that gives Claude a live connection to it** — see
-[setup-quickbooks-desktop.md](../../docs/setup-quickbooks-desktop.md) for what exists today (code
-and DB access) versus what a live connector would take.
+(see `qbsdklog.txt` above to see what was actually sent), not direct file I/O.
+
+**Live since 2026-10-15: the `quickbooks-desktop` MCP server** gives Claude a direct connection —
+its `ExecuteQbxml` tool runs a raw QBXML request against whichever company file `QBD_COMPANY_FILE`
+points at (currently `SellFromHome.qbw`). **Use this MCP connection first** for any live QBD
+read/write going forward, instead of the reflection-harness/compiled-code-probe workaround — that
+workaround is still valid for anything the MCP's one generic tool doesn't cover, but the direct
+connection is faster and doesn't need the app's own compiled code as a vehicle. See
+[setup-qbd-sellfromhome.md](../../docs/setup-qbd-sellfromhome.md) for the server itself (why
+QBXMLRP2, the one-time approval dialog, same-file concurrency with manual QB use) —
+`setup-quickbooks-desktop.md` is superseded/historical only.
 
 **Credentials:** Windows user env var **`QBD_CREDS`** — holds `un:<username>, pwd:<password>`
 for this company file. Reference by name only, never print the value.

@@ -9,15 +9,15 @@ Full operational rules live in **`reference.md`** next to this file. **Read `ref
 
 ## Sections in `reference.md`
 
-- (line 5) Step-based implementation workflow (follow in strict order)
-- (line 196) Intent parsing
-- (line 202) Node discovery process (Step 1 reference)
-- (line 229) Existing Node Analysis — [JIRA-ID]
-- (line 246) Git workflow safety (critical before coding)
-- (line 314) Implementation pattern
-- (line 322) Safety pattern
-- (line 328) Observability pattern
-- (line 334) Null vs zero discipline
-- (line 345) PR Comment Review and Replies Workflow
+- (line 5) Step-based implementation workflow (follow in strict order — now includes STEP 0.5, check for an existing generic config before any customization node; Step 2.3 now also requires a separate `<TICKET>_Implementation.md` file)
+- (line 228) Intent parsing
+- (line 234) Node discovery process (Step 1 reference)
+- (line 261) Existing Node Analysis — [JIRA-ID]
+- (line 278) Git workflow safety (critical before coding)
+- (line 346) Implementation pattern
+- (line 354) Safety pattern
+- (line 360) Observability pattern
+- (line 366) Null vs zero discipline
+- (line 377) PR Comment Review and Replies Workflow
 
 > Ported from `.cursor/skill-library/dev-customization-workflow.skill.md` (canonical Cursor/Copilot copy). Keep both in sync — see the `krishnaaigen-skill-evolution` skill.
