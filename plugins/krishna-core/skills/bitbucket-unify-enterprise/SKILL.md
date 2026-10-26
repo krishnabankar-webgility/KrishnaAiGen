@@ -156,33 +156,13 @@ anything to the related Jira issue. Default is silence on Jira after a review:
   mandatory Jira touchpoints elsewhere in this system (the `jira-workflow` §1a pre-code plan
   comment, the §7 QA/RFT comment) — those still happen on their own triggers.
 
-## Reviewing a PR: isolate in a worktree, check existing patterns first, stay terse
+## Reviewing a PR
 
-When asked to review a Bitbucket PR (not a pre-PR local diff — see `wd-review`/`wd-pr-review` for
-that), this is the default shape unless told otherwise:
-
-- **Never check out the PR branch in the current session/branch.** Delegate to a `wd-review`-type
-  agent with `isolation: "worktree"` (or an equivalent isolated clone) so the PR's source commit
-  gets checked out somewhere that isn't the session's own working tree — the current branch (and
-  any uncommitted work on it) stays untouched throughout.
-- **Read the whole diff before concluding anything.** Large diffs get saved to a file by the MCP
-  tool and truncated in the response — read the saved file in full, chunked if needed. Say so
-  explicitly if a diff genuinely couldn't be read in full.
-- **Check how the existing codebase already does the same kind of thing before flagging it** —
-  grep/read the actual repo (in the isolated worktree), don't review from the diff in isolation.
-  If a "finding" just matches a pattern already used elsewhere, it's not a finding — at most a
-  non-blocking suggestion.
-- **Verify the PR description's own safety claims against the code and tests** — don't take a
-  "this is safe because X" comment at face value; find X and confirm it actually holds (or flag
-  precisely which part is an assumption, not something provable from the diff — e.g. an
-  operational claim about a prod system's config that only the author can confirm).
-- **Output stays terse:** file path + line, then 1-3 sentences — what the problem is and what
-  could be done. No long write-ups, no restating the diff, no "no issues found" filler for files
-  with nothing wrong. Classify every finding as **Suggestion** (safe to ignore, flagged anyway) or
-  **Critical**/**needs confirmation** (explain briefly why it matters).
-- **Report in chat first; only post to Bitbucket if asked** — same as the Jira rule above. Once
-  asked, post the overall verdict + scope notes as one general PR comment and each per-line
-  finding as its own inline comment (`path` + `to` line), not one giant comment.
+Full process now lives in its own **`pr-review`** skill (worktree isolation, verifying claims
+against code/tests, terse file+line findings with severity, the overview comment with counts,
+posting rules) — load that skill for any "review this PR" request. Kept as its own skill rather
+than a section here because it's meant to absorb Krishna's ongoing review feedback directly
+(`krishnaaigen-skill-evolution`), independent of Bitbucket-mechanics changes to this file.
 
 ## Troubleshooting
 

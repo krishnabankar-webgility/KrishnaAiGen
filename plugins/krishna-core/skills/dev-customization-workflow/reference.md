@@ -6,6 +6,34 @@ Use this skill for **customer-specific customization** tasks in this repository.
 
 ---
 
+### STEP -1 — New customer issue bootstrap (runs the moment Krishna hands over a Jira ID)
+
+Set up the workspace, then **tell Krishna in chat**. Krishna then writes his own analysis in the prompt file (manual process); never wait idle - do STEP -1B meanwhile.
+
+**-1A. Scaffold (all four, in order; skip any that already exists, never overwrite):**
+
+1. **Folder:** `C:\WG-Agentic\Reference\<JIRA-ID>\` (named with the Jira ID only, unless Krishna gives another location) containing `<JIRA-ID>_Prompts.txt` (header + `[Prompt 1]`, CRLF; Krishna fills it later).
+2. **Branch:** `<JIRA-ID>_Krishna` in `unify-enterprise`, cut from **`origin/master`** (fetch first, `--no-track`). Never branch from the current branch.
+3. **Local dev files on the branch** (uncommitted): `Desktop/eCC/Xml/apiConfig.xml` + `Desktop/wg.eCC.Controller/AuthenticationController.cs` taken from the **latest stash** (`git rev-parse stash@{0}` BEFORE doing anything), `apiConfig.xml` pointing `UnifyDB` as the catalog on the local SQL Server. Order that works with a dirty tree: `git stash push` current work -> `git checkout -b <ID>_Krishna --no-track origin/master` -> `git stash apply <latest-stash-SHA>`. The working copy may differ from the stash (ticket-specific `CustomizationNode` list) - the stash wins. Never commit these two files.
+4. **Confluence page** in Personal -> **Customizations** folder (`3027959816`, space `2590998546`, cloud `a8ce84dd-8aa2-4dd1-b893-5b33a896f918`), title `<JIRA-ID> <prefix>` where prefix is the Jira summary prefix (`CIM` / `FR` / `RN-CIM` / `RN-FR` ...). Body = **Customer Issue Ticket Template** (page `3080192055`, tiny `https://webgility.atlassian.net/wiki/x/NwCYtw`; sections: Customer Issue / HubSpot / Development [Branch, Pull Request, Local Build, Technical Doc] / Customization Node / Environment & Access [Zoom Recording, Backup, Implementation Logic / Prompt, Test Orders]). This replaces the older Customization Notes Template for new pages. Fill only what is known (Jira URL + status, HubSpot link, branch, tech-doc path); leave the rest blank, never invent PR/build/node values.
+
+**-1B. Then, without being asked (read-only analysis):**
+
+Read the issue fully + every Jira comment (incl. bot/FR analysis comments), linked issues and the HubSpot ticket; check **existing WD configuration** (STEP 0.5) and **existing customizations alone or combined** (STEP 1).
+
+**Order is mandatory (Krishna, 2026-10-21):** FIRST tell Krishna in chat what you found - an existing config, an existing customization (alone or combined), or a workaround - or that none exists. **Only if no resolution already exists**, write `Reference/<JIRA-ID>/<JIRA-ID>_ImplementationPlan.md` (new FR/CIM) - high-level (ask, scope, flows) down to low-level (files, methods, data, gating node, tests). If something already solves it, stop at the chat finding and let Krishna decide; no plan md.
+
+**Jira comments are two-stage (Krishna, 2026-10-21):**
+1. **First comment = effort estimation (SP) ONLY** (`jira-workflow` §1a.1: complexity-based Fibonacci, Analysis / Dev / QA / Combined), with one brief line per figure saying what it covers. No approach, workflow or plan text. Post it after the existing-coverage finding; Krishna's SP method is known - do not ask how; if unsure of a figure, show it in chat first. **Post it even when the Jira Story Points field is already filled** (Krishna sets that field by hand; it is not the estimate comment - UD-33709 miss, 2026-10-23).
+2. Then continuous prompting in `<JIRA-ID>_Prompts.txt` until the final implementation plan exists.
+3. **Only when Krishna says so**, post a NEW comment: the high-level implementation plan + the updated SP estimate. **Never delete or edit the earlier estimate comment** - the history of the estimate stays visible.
+
+**Housekeeping (Krishna, 2026-10-21):** always `git stash push` any uncommitted work BEFORE switching branches so it is saved for next time; and rename the Claude session chat to the Jira ID only (`/rename <JIRA-ID>`; tell Krishna if it cannot be done from inside the session).
+
+**-1C. Handoff:** report -1A done in chat, keep going on -1B, and when Krishna names a prompt (`Prompt N` in `<JIRA-ID>_Prompts.txt`) take his analysis/plan/feedback there as the next instruction. Chat stays short: gaps, blockers, questions only; detail goes in the md.
+
+---
+
 ### STEP 0 — Read the Jira Ticket
 
 Before anything else, read the provided Jira ticket and extract:

@@ -378,6 +378,8 @@ Use when the user asks for a **Comment for QA Testing**, **RFT**, or **Ready For
 
 ### 9. Customization Notes Page (Personal Customizations folder)
 
+> **Template changed 2026-10-21:** new pages use the **Customer Issue Ticket Template** (`3080192055`, `https://webgility.atlassian.net/wiki/x/NwCYtw`) - Customer Issue / HubSpot / Development (Branch, Pull Request, Local Build, Technical Doc) / Customization Node / Environment & Access (Zoom Recording, Backup, Implementation Logic / Prompt, Test Orders). Title `<JIRA-ID> <prefix>` (FR / CIM / RN-FR / RN-CIM). Created automatically by the new-customer-issue bootstrap (`dev-customization-workflow` STEP -1). Older pages keep the Customization Notes Template layout below.
+
 **Triggers (treat as §9 create/update):** Phrases such as **“prepare a customizations personal page for Jira [UD-XXXXX]”**, **“prepare a customizations page …”**, **“new notes page for UD-XXXXX”**, or **“customization notes for UD-XXXXX”** — same workflow as below.
 
 These are **personal short-form notes** in folder **`3027959816`** (the **Customizations** / “public customizations” folder), not long-form handoff docs. Keep the **default** to the minimal pattern (exemplars: **UD-32242 R-Bug**, **UD-32081 CIM**).

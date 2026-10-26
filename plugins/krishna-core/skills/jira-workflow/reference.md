@@ -277,6 +277,12 @@ an estimate someone actually asked for). The rule:
   `≤ 8` on the Fibonacci scale.
 - **Always break out Analysis + Dev + QA separately, plus the combined total** — never report
   just one combined number.
+- **Analysis is ONE figure for the whole issue, on top of all phases — never split by phase.**
+  Only the **Dev + QA effort** is split into phases, and only when its total goes above 8:
+  cut it into chunks of the implementation of **at most 8 each** (e.g. total 21 -> 8 + 8 + 5),
+  and rate **Dev and QA separately inside each phase** (Dev n + QA n = phase total). Not one
+  phase per Analysis/Dev/QA triple, and not separate Dev-phases and QA-phases lists (Krishna,
+  UD-33709, 2026-10-23, corrected twice).
 - **Keep it short and table/point-formatted** — this is a scannable estimate, not a design doc.
 
 **Worked example:** Dev alone is honestly a 13 (too large for one figure) → split Dev into
@@ -288,10 +294,15 @@ Report format, anywhere this rule applies (in a Jira comment, in chat, or both):
 
 ```
 Effort Estimate (Story Points, complexity-based, Fibonacci)
-- Analysis: <n>
-- Dev: <n> (or, if split: Phase 1 — <n>, Phase 2 — <n>, ...)
+- Analysis: <n>   (one figure, all phases combined)
+- Dev: <n>
 - QA: <n>
 - Combined: <sum>
+
+If the Dev + QA total is above 8, replace the Dev/QA lines with phases (each <= 8):
+- Phase 1 (<scope>): Dev <n> + QA <n> = <n>
+- Phase 2 (<scope>): Dev <n> + QA <n> = <n>
+- Combined: Analysis + all phases
 ```
 
 If nothing in the estimate crossed 8, the phase breakdown is unnecessary — just report the three

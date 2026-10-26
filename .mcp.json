@@ -1,5 +1,13 @@
 {
   "mcpServers": {
+    "webgility-portal": {
+      "command": "node",
+      "args": [
+        "--env-file",
+        "C:/WG-Agentic/wg-ai-workspace/.env",
+        "C:/WG-Agentic/wg-ai-workspace/.mcp-servers/webgility-portal/server.mjs"
+      ]
+    },
     "cis-db": {
       "command": "node",
       "args": [

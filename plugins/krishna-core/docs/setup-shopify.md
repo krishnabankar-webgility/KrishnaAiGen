@@ -1,5 +1,21 @@
 # Shopify Admin API — one server, many stores (two steps need you, not me)
 
+## API access policy (standing rule, 2026-10-19)
+
+**GraphQL only, by default, for every Shopify store this touches.** Shopify has deprecated large
+parts of the REST Admin API and warns that continued REST use on a deprecated resource risks the
+app's API access being suspended. So:
+
+- Every tool in `shopify/server.mjs` calls `/admin/api/<version>/graphql.json` — none call a
+  `/*.json` REST endpoint.
+- Do not add a REST call back into this server, and do not run a one-off REST call against a
+  Shopify store (even a throwaway script), **unless Krishna explicitly asks for REST** for that
+  specific case.
+- IDs returned/accepted are GraphQL gids (`gid://shopify/Order/123...`) rather than bare numeric
+  REST ids; every tool also accepts a bare numeric id for convenience and converts it internally.
+- This reverses how the server was originally built (REST, see history below this doc) — that
+  code is kept only as a "what changed and why" record, not something to restore.
+
 ## What this gives Claude
 
 Read and write access to Shopify stores' customers, products, and orders via a local
@@ -51,8 +67,15 @@ turn a shared login into an API credential.
 
 ## Step 1 — the server files (already updated, here for reference / a clean re-create)
 
-`C:\WG-Agentic\wg-ai-workspace\.mcp-servers\shopify\` already has these two files, rewritten
-2026-10-15 for multi-store:
+`C:\WG-Agentic\wg-ai-workspace\.mcp-servers\shopify\` already has these two files — rewritten
+2026-10-15 for multi-store, then rewritten again 2026-10-19 to GraphQL-only (see policy above).
+Read the live `server.mjs` for the exact current code (it's the source of truth); the shape is:
+GraphQL `gqlCall(store, query, variables)` helper, `toGid()` for id conversion, one tool per
+operation (`list_stores`, `list_products`, `get_product`, `list_orders`, `get_order`,
+`list_customers`, `search_customers`, `get_customer`, `create_customer`, `create_product`,
+`create_draft_order` — now with an optional `discount_code` resolved via the
+`codeDiscountNodeByCode` GraphQL query — and `complete_draft_order`, which turns a draft order
+into a real Order).
 
 **`package.json`:**
 ```json
@@ -60,162 +83,12 @@ turn a shared login into an API credential.
   "name": "shopify-admin-mcp",
   "version": "1.0.0",
   "type": "module",
-  "description": "Shopify Admin REST API MCP server — customers/products/orders, read + write, store picked per call",
+  "description": "Shopify Admin GraphQL API MCP server — customers/products/orders, read + write, store picked per call",
   "main": "server.mjs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
   }
 }
-```
-
-**`server.mjs`:**
-```javascript
-#!/usr/bin/env node
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-
-// Shopify Admin REST API server — read tools plus a small set of clearly-labeled
-// write tools. Every write tool changes the LIVE store; there is no dry-run mode.
-//
-// Multi-store: one process, store picked per call via the `store` argument —
-// not one process per store. Add a new store here — nowhere else — plus its
-// .env vars; no new wg-mcp.json entry needed.
-const STORES = {
-  mewebg: "SHOPIFY_MEWEBG_",
-  qastudio: "SHOPIFY_QASTUDIO_",
-};
-
-const clients = new Map(); // store key -> { baseUrl, accessToken }
-
-function getClient(store) {
-  const prefix = STORES[store];
-  if (!prefix) {
-    throw new Error(`Unknown store "${store}". Known stores: ${Object.keys(STORES).join(", ")}`);
-  }
-  if (clients.has(store)) return clients.get(store);
-
-  const domain = (process.env[`${prefix}STORE_DOMAIN`] ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const accessToken = process.env[`${prefix}ADMIN_API_ACCESS_TOKEN`] ?? "";
-  const apiVersion = process.env[`${prefix}API_VERSION`] ?? "2024-10";
-  if (!domain || !accessToken) {
-    throw new Error(`${prefix}STORE_DOMAIN or ${prefix}ADMIN_API_ACCESS_TOKEN is missing — set it in wg-ai-workspace/.env`);
-  }
-  const client = { baseUrl: `https://${domain}/admin/api/${apiVersion}`, accessToken, domain };
-  clients.set(store, client);
-  return client;
-}
-
-const server = new Server(
-  { name: "shopify", version: "1.0.0" },
-  { capabilities: { tools: {} } }
-);
-
-async function callShopify(store, method, path, { query, body } = {}) {
-  const client = getClient(store);
-  const qs = new URLSearchParams(
-    Object.entries(query ?? {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
-  ).toString();
-  const url = `${client.baseUrl}${path}${qs ? `?${qs}` : ""}`;
-
-  const resp = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": client.accessToken },
-    body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(30_000),
-  });
-
-  const text = await resp.text();
-  let data;
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-
-  if (!resp.ok) {
-    return {
-      content: [{ type: "text", text: `Shopify API error ${resp.status} on ${method} ${path} (store: ${store}):\n${JSON.stringify(data, null, 2)}` }],
-      isError: true,
-    };
-  }
-  return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
-}
-
-const STORE_PROP = { store: { type: "string", description: `Which store: ${Object.keys(STORES).join(" or ")}. Call list_stores if unsure.` } };
-
-const TOOLS = [
-  { name: "list_stores", description: "List the Shopify stores this server currently knows how to reach (the `store` values every other tool accepts), and which domain each one is.",
-    inputSchema: { type: "object", properties: {} } },
-  // --- read ---
-  { name: "list_products", description: "List products. Input: { store, limit?, title?, status?, collection_id? }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, limit: { type: "number" }, title: { type: "string" }, status: { type: "string" }, collection_id: { type: "string" } }, required: ["store"] } },
-  { name: "get_product", description: "Get a product by id. Input: { store, product_id }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, product_id: { type: "string" } }, required: ["store", "product_id"] } },
-  { name: "list_orders", description: "List orders. Input: { store, limit?, status? ('open'|'closed'|'cancelled'|'any'), financial_status?, fulfillment_status?, created_at_min?, created_at_max?, name? }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, limit: { type: "number" }, status: { type: "string" }, financial_status: { type: "string" }, fulfillment_status: { type: "string" }, created_at_min: { type: "string" }, created_at_max: { type: "string" }, name: { type: "string" } }, required: ["store"] } },
-  { name: "get_order", description: "Get an order by id. Input: { store, order_id }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, order_id: { type: "string" } }, required: ["store", "order_id"] } },
-  { name: "list_customers", description: "List customers. Input: { store, limit? }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, limit: { type: "number" } }, required: ["store"] } },
-  { name: "search_customers", description: "Search customers. Input: { store, query } e.g. 'email:jane@example.com'",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, query: { type: "string" } }, required: ["store", "query"] } },
-  { name: "get_customer", description: "Get a customer by id. Input: { store, customer_id }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, customer_id: { type: "string" } }, required: ["store", "customer_id"] } },
-  // --- write: each one changes the live store ---
-  { name: "create_customer", description: "Create a customer. WRITES to the live store. Input: { store, first_name?, last_name?, email?, phone?, tags? }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, first_name: { type: "string" }, last_name: { type: "string" }, email: { type: "string" }, phone: { type: "string" }, tags: { type: "string" } }, required: ["store"] } },
-  { name: "create_product", description: "Create a product. WRITES to the live store. Input: { store, title, body_html?, vendor?, product_type?, status? ('active'|'draft'), variants? (array of {price, sku, option1}) }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, title: { type: "string" }, body_html: { type: "string" }, vendor: { type: "string" }, product_type: { type: "string" }, status: { type: "string" }, variants: { type: "array" } }, required: ["store", "title"] } },
-  { name: "create_draft_order", description: "Create a DRAFT order (not a paid/completed order — this is the normal, safe way to build an order for a customer to review/pay). WRITES to the live store. Input: { store, line_items (array of {variant_id, quantity} or {title, price, quantity}), customer_id?, email?, note? }",
-    inputSchema: { type: "object", properties: { ...STORE_PROP, line_items: { type: "array" }, customer_id: { type: "string" }, email: { type: "string" }, note: { type: "string" } }, required: ["store", "line_items"] } },
-];
-
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-  const a = args ?? {};
-
-  if (name === "list_stores") {
-    const rows = Object.entries(STORES).map(([store, prefix]) => ({
-      store,
-      domain: process.env[`${prefix}STORE_DOMAIN`] ?? "(not set)",
-    }));
-    return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
-  }
-
-  try {
-    switch (name) {
-      case "list_products":
-        return await callShopify(a.store, "GET", "/products.json", { query: { limit: a.limit ?? 50, title: a.title, status: a.status, collection_id: a.collection_id } });
-      case "get_product":
-        return await callShopify(a.store, "GET", `/products/${encodeURIComponent(a.product_id)}.json`);
-      case "list_orders":
-        return await callShopify(a.store, "GET", "/orders.json", { query: { limit: a.limit ?? 50, status: a.status ?? "any", financial_status: a.financial_status, fulfillment_status: a.fulfillment_status, created_at_min: a.created_at_min, created_at_max: a.created_at_max, name: a.name } });
-      case "get_order":
-        return await callShopify(a.store, "GET", `/orders/${encodeURIComponent(a.order_id)}.json`);
-      case "list_customers":
-        return await callShopify(a.store, "GET", "/customers.json", { query: { limit: a.limit ?? 50 } });
-      case "search_customers":
-        return await callShopify(a.store, "GET", "/customers/search.json", { query: { query: a.query } });
-      case "get_customer":
-        return await callShopify(a.store, "GET", `/customers/${encodeURIComponent(a.customer_id)}.json`);
-      case "create_customer":
-        return await callShopify(a.store, "POST", "/customers.json", { body: { customer: { first_name: a.first_name, last_name: a.last_name, email: a.email, phone: a.phone, tags: a.tags } } });
-      case "create_product":
-        return await callShopify(a.store, "POST", "/products.json", { body: { product: { title: a.title, body_html: a.body_html, vendor: a.vendor, product_type: a.product_type, status: a.status ?? "draft", variants: a.variants } } });
-      case "create_draft_order":
-        return await callShopify(a.store, "POST", "/draft_orders.json", { body: { draft_order: { line_items: a.line_items, customer: a.customer_id ? { id: a.customer_id } : undefined, email: a.email, note: a.note } } });
-      default:
-        return { content: [{ type: "text", text: `Unknown tool: ${name}` }], isError: true };
-    }
-  } catch (error) {
-    return { content: [{ type: "text", text: error.message }], isError: true };
-  }
-});
-
-const transport = new StdioServerTransport();
-await server.connect(transport);
 ```
 
 No `npm install` needed if the folder already has `node_modules` from the original single-store
