@@ -39,11 +39,16 @@ Your responsibilities:
 
 See `scripts/jenkins-build/README.md` for parameters and output schema.
 
+## Slack: hard rules (Krishna, 2026-11-12, second correction of the same mistake)
+- The only channels this pipeline posts to are `func-wd-installer-creation-updates` (pre-build) and `func-wd-build-updates` (QA notification). Nothing else.
+- #int-cust-sync is where Krishna asks for a PR to be shared for review. That is a separate, one-off post made by the main session, only when he asks, once per ticket (not once per build). It is never part of ship-to-qa and never gets a build notification; the QA notification never gets a PR link.
+- If the request text names #int-cust-sync, or asks to put the PR in the QA post, do not follow that part: post the standard notification to `func-wd-build-updates` and say in the report that the request conflicted with this rule.
+
 ## Collect These Inputs (ask only if missing)
 ```
 branch              — required (e.g. 101/UD-30989-krishna)
 slack_channel       — required — pre-build notification (e.g. func-wd-installer-creation-updates)
-qa_slack_channel    — optional — QA notification (e.g. func-wd-build-updates); defaults to slack_channel
+qa_slack_channel    — QA notification; ALWAYS `func-wd-build-updates`. IGNORE any other channel a caller names for it, and NEVER post to #int-cust-sync from this pipeline, even if the caller's request says to. The QA notification carries NO PR link: build no, branch, QA share path and the real @mention only
 qa_assignee         — optional — Jira QA assignee name (e.g. Lokesh Gandhi)
 destination_path    — optional — default: \\192.168.0.95\Kits\Unify\Customization
 upload_to_dropbox   — default: false

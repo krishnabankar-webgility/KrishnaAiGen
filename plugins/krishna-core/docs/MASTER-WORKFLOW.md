@@ -36,6 +36,7 @@ X" view this doc gives, see [ARCHITECTURE.md](ARCHITECTURE.md).
    | Jenkins | [setup-jenkins.md](setup-jenkins.md) |
    | Jira / Confluence / Atlassian | [setup-atlassian.md](setup-atlassian.md) |
    | Slack | [setup-slack.md](setup-slack.md) |
+   | Slack DM auto-reply (`slack-auto-responder`, `/slack-autoreply`; local PC / VM runners, KrishnaAiGen app tokens only, scripts in `KrishnaAiGen/scripts/slack-auto-reply/`) | [setup-slack-auto-reply.md](setup-slack-auto-reply.md) |
    | SQL Server / CIS DB / WO DB | [setup-sql-server.md](setup-sql-server.md) |
    | QuickBooks Desktop | [setup-quickbooks-desktop.md](setup-quickbooks-desktop.md) — honest: nothing live exists yet |
    | Remote VM / jump box (RDP, PSRemoting) | [setup-remote-access.md](setup-remote-access.md) |

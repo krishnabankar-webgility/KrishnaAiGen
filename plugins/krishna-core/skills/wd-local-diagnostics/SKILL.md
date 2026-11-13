@@ -19,6 +19,10 @@ looking at a repo clone running from source, or an installed build:
 | **Local debug (repo clone)** | `<repo-root>\unify-enterprise\Desktop\eCCDebug\ErrorLog` | `<repo-root>\unify-enterprise\Desktop\eCCDebug\SchedulerLog` |
 | **Installed WD app** | `C:\Webgility\UnifyEnterprise\ErrorLog` | `C:\Webgility\UnifyEnterprise\SchedulerLog` |
 
+Installed-app config: `C:\Webgility\UnifyEnterprise\XML\apiConfig.xml` (the repo-clone one is `Desktop\eCC\Xml\apiConfig.xml`). When Krishna runs the **installer** build, read logs and config from `C:\Webgility\UnifyEnterprise\`, not from `eCCDebug`.
+
+**Re-downloading a customer's order on a restored DB: match `CIS_URL` to the customer's environment first.** `CIS_URL` in that `apiConfig.xml` picks which CIS WD talks to. A prod customer (logged in with their own WD login) needs `https://cis.webgility.com`; left on `https://cisqa.webgility.com`, the re-download fails as if the token were stale, because QA CIS has no channel for that customer. Don't touch `Settings_Profiles.ShopifyAccessToken`: with the URL fixed, the order re-downloads with its `ShipmentItemsDetails` and posts its invoice and payment (proven on Sari Browar order 3397, UD-33822, 2026-10-29).
+
 **`<repo-root>` varies** — `C:\WG-Agentic\unify-enterprise`, `C:\WG-Agentic 2\unify-enterprise`,
 or any other clone location (`C:\<FolderName>\unify-enterprise`, `C:\unify-enterprise`, a
 different drive letter entirely). The part that never changes is everything from

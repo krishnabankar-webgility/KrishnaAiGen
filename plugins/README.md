@@ -38,12 +38,13 @@ Verify:
 
 ```
 /plugin          # both plugins listed as installed
-/agents          # 14 personal + 21 wd-* agents
+/agents          # 17 personal + 21 wd-* agents
 /mcp             # 11 local servers + your claude.ai connectors
 ```
 
 Typing `/` should now offer `/jira`, `/git`, `/bitbucket`, `/customization`, `/ship-to-qa`,
-`/kibana`, `/confluence`, `/slack`, `/db`, `/daily-update`, `/sys-fix`, `/learn`, `/route`.
+`/kibana`, `/confluence`, `/slack`, `/slack-autoreply`, `/db`, `/daily-update`, `/sys-fix`,
+`/learn`, `/route`.
 
 ### Updating later
 
@@ -63,16 +64,16 @@ KrishnaAiGen/
     scripts/sync-workspace.ps1        distributes .mcp.json + CLAUDE.md to both trees
   plugins/
     krishna-core/
-      agents/      16   personal specialists (jira, git, bitbucket, slack, db, confluence,
-                        daily-update, dev-customization, sys-troubleshoot, kibana, ship-to-qa,
-                        krishnaaigen router, krishnaaigen-autonomous, agent-learning,
-                        skill-author, memory-gardener)
-      skills/      23   the 17 ported .cursor/skill-library packs + ticket-context +
+      agents/      17   personal specialists (jira, git, bitbucket, slack, slack-auto-responder,
+                        db, confluence, daily-update, dev-customization, sys-troubleshoot,
+                        kibana, ship-to-qa, krishnaaigen router, krishnaaigen-autonomous,
+                        agent-learning, skill-author, memory-gardener)
+      skills/      24   the 17 ported .cursor/skill-library packs + ticket-context +
                         resume-work + krishnaaigen-skill-evolution (rewritten for the
                         plugin era — see "Standing behavior" below) + cis-db-access +
-                        pr-review + wd-ui-automation (new skills land here as recurring
-                        needs surface)
-      commands/    14   thin launchers onto the agents above, + /agents-list
+                        pr-review + wd-ui-automation + slack-auto-reply (new skills land
+                        here as recurring needs surface)
+      commands/    15   thin launchers onto the agents above, + /agents-list
       hooks/            SessionStart preflight
       scripts/          preflight.ps1, approve-mcp-trust.py (see "One-time setup extras")
       reference/        archived Copilot prompts (not active — see its README)

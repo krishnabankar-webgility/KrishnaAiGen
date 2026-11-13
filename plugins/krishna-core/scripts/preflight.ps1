@@ -100,6 +100,7 @@ W '| Implementation done, ready for QA (build/share/RFT/Slack/QA comment) | `shi
 W '| Kibana / ES log analysis | `wd-es-kibana` | `/kibana` |'
 W '| Confluence pages | `confluence-automation` | `/confluence` |'
 W '| Slack | `slack-automation` | `/slack` |'
+W '| Answer my Slack DMs on my behalf (auto-reply), pause/resume, mode | `slack-auto-responder` | `/slack-autoreply` |'
 W '| Local SQL Server | `db-automation` | `/db` |'
 W '| Daily digest | `daily-work-update` | `/daily-update` |'
 W '| Windows / VPN / SMB / VM | `sys-troubleshoot` | `/sys-fix` |'

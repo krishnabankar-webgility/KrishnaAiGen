@@ -12,7 +12,7 @@
     {
       "name": "krishna-core",
       "source": "./plugins/krishna-core",
-      "description": "Personal cross-repo workflow: Jira, Git, Bitbucket, Slack, Confluence, SQL Server, Kibana, Jenkins, daily digest, Windows/VPN troubleshooting, and the per-ticket Reference-folder convention. 18 skills, 14 agents, 13 slash commands, session preflight."
+      "description": "Personal cross-repo workflow: Jira, Git, Bitbucket, Slack (incl. DM auto-reply), Confluence, SQL Server, Kibana, Jenkins, daily digest, Windows/VPN troubleshooting, and the per-ticket Reference-folder convention. 24 skills, 17 agents, 15 slash commands, session preflight."
     },
     {
       "name": "wd-core",

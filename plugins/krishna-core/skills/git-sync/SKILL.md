@@ -89,3 +89,9 @@ git branch --set-upstream-to=origin/<current-branch-name>
 
 ---
 > Ported from `.cursor/skill-library/git-sync.skill.md` (canonical Cursor/Copilot copy). Keep both in sync — see the `krishnaaigen-skill-evolution` skill.
+
+## Commit identity check (2026-11-06)
+
+Before the first commit of a session run `git config user.name; git config user.email`. It must read `Krishna Bankar` /
+`krishna.bankar@webgility.com`. A placeholder (`User` / `user@example.com`) once put five commits into UD-33709/UD-33832 under the wrong
+author (PR #10497); they could not be fixed afterwards because the branch was shared. Fix the global config, never rewrite pushed commits.

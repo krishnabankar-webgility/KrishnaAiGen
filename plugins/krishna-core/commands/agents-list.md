@@ -17,6 +17,7 @@ the task in plain language and let routing pick it.
 | `bitbucket-automation` | unify-enterprise branch + PR on Bitbucket |
 | `confluence-automation` | Confluence pages, reports, QA comment mirror |
 | `slack-automation` | Post/read Slack via MCP |
+| `slack-auto-responder` | Answers Krishna's Slack DMs on his behalf (auto-reply); run, status, pause/resume, mode via `/slack-autoreply` |
 | `db-automation` | Local SQL Server restore/attach/query |
 | `dev-customization` | Customer-specific customization (CIM/FR/CFC) with node-gating |
 | `ship-to-qa` | Implementation done → hand off to QA: Jenkins build, QA share, Jira RFT, Slack notify, QA comment (10 steps) |
@@ -60,5 +61,5 @@ the task in plain language and let routing pick it.
 | `wd-callchain-refresh` | Re-traces stale call-chain docs |
 
 Slash-command shortcuts for the most-used ones: `/jira`, `/git`, `/bitbucket`, `/customization`,
-`/ship-to-qa`, `/kibana`, `/confluence`, `/slack`, `/db`, `/daily-update`, `/sys-fix`, `/learn`,
-`/route`.
+`/ship-to-qa`, `/kibana`, `/confluence`, `/slack`, `/slack-autoreply`, `/db`, `/daily-update`,
+`/sys-fix`, `/learn`, `/route`.

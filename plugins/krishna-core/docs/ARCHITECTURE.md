@@ -30,8 +30,8 @@ plugin install at all (see [web-claude-access.md](web-claude-access.md)).
      ┌────────────────────────────────────┐  │  ┌───────────────────────────┐
      │  krishnaaigen plugin marketplace    │  │  │  claude.ai connectors      │
      │  (installed once, ~/.claude)        │  │  │  (Jira, Confluence, Slack, │
-     │  ├─ krishna-core (16 agents,        │  │  │   Gmail, Calendar, Drive,  │
-     │  │   19 skills, 14 commands)        │  │  │   HubSpot)                 │
+     │  ├─ krishna-core (17 agents,        │  │  │   Gmail, Calendar, Drive,  │
+     │  │   24 skills, 15 commands)        │  │  │   HubSpot)                 │
      │  └─ wd-core (21 agents, 13 skills   │  │  └───────────────────────────┘
      │      — thin routers onto the        │  │
      │      team's own unify-enterprise    │  │            (both reach here)
@@ -139,13 +139,13 @@ Lifecycle (live → archived → permanently deleted) and exactly which rule fir
 
 ## 7. Full inventory
 
-**`krishna-core`** — 16 agents, 19 skills, 14 commands. Run `/agents-list` any time for the
+**`krishna-core`** — 17 agents, 24 skills, 15 commands. Run `/agents-list` any time for the
 live, descriptive version of this table (filterable, e.g. `/agents-list payout`) — this is a
 structural summary, not the source of truth:
 
 | Category | Agents |
 |---|---|
-| Cross-repo automation | `jira-automation`, `git-automation`, `bitbucket-automation`, `confluence-automation`, `slack-automation`, `db-automation` |
+| Cross-repo automation | `jira-automation`, `git-automation`, `bitbucket-automation`, `confluence-automation`, `slack-automation`, `slack-auto-responder` (Slack DM auto-reply, `/slack-autoreply`), `db-automation` |
 | WD-specific | `dev-customization`, `ship-to-qa`, `wd-es-kibana`, `sys-troubleshoot` |
 | Meta / self-maintaining | `krishnaaigen` (master router), `krishnaaigen-autonomous`, `agent-learning`, `skill-author`, `memory-gardener` |
 | Reporting | `daily-work-update` |
@@ -154,7 +154,7 @@ Skills without a dedicated agent (loaded directly when their trigger matches): `
 `resume-work`, `wd-local-diagnostics`, `krishnaaigen-skill-evolution`,
 `krishnaaigen-ephemeral-output`, plus the skill half of every agent above (`jira-workflow`,
 `git-sync`, `bitbucket-unify-enterprise`, `confluence-workflow`, `slack-integration`,
-`db-restore`, `dev-customization-expertise` + `dev-customization-workflow`, `wd-jenkins-build`
+`slack-auto-reply`, `db-restore`, `dev-customization-expertise` + `dev-customization-workflow`, `wd-jenkins-build`
 skill folder now named `ship-to-qa`, `vpn-smb-access`, `network-profile-fix`,
 `sys-cleanup-optimization`, `remote-vm-management`).
 

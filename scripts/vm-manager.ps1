@@ -35,7 +35,8 @@ function Get-VpnCreds {
 
 function Test-VpnConnected {
     $out = & $SccliPath get -n $VpnName -t endpoints 2>&1 | Out-String
-    return $out -match "Connected: \d+ \("
+    # Match only when ≥1 endpoint is connected; "Connected: 0 (" means disconnected.
+    return $out -match "Connected: [1-9]\d* \("
 }
 
 function Connect-Vpn {

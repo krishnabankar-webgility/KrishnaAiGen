@@ -219,6 +219,11 @@ Quick QA regression check: one `SELECT 1` on `qa-wgs` should still work.
 
 ## Safety
 - Connect over VPN (`vm-manager.ps1 vpn-check`). Port 6432 (pgbouncer) is an **automatic fallback**: if a connection to `CIS_DB_PORT` (5432) is refused or times out, the server retries once on 6432 and keeps using it for that target. No `.env` change needed; optionally `CIS_DB_PORT_FALLBACK` changes the fallback port. SQL errors (bad login, permissions) do not trigger the fallback.
+- **VM fallback (v1.2.0, all targets).** From home, the SSL VPN doesn't route prod's 172.31.x, so a connect failure that survives the 6432 retry is re-run on the VM `CIS_DB_VM_HOST` (`.env`, currently `192.168.0.141`).
+  - The VM call goes over WinRM with `CIS_DB_VM_USER/PASSWORD`, otherwise the `RDP_UN/RDP_PWD` user env vars.
+  - It uses Node `pg` in `%USERPROFILE%\cisq` on the VM, which is auto-installed if missing.
+  - The query runs in a read-only transaction. DB creds travel only as process env vars and are never written on the VM.
+  - To disable it, remove `CIS_DB_VM_HOST`.
 - Prod is real customer data: SELECT only, small LIMITs, select needed columns (never `*` on `channelsettings`, it holds live tokens), and no customer data in repo files.
 - Prefer a read-only prod role (SELECT grants only). If one login serves QA and prod it must not have write rights on prod.
 - Never paste the real password into docs or chat; it lives only in `.env`.

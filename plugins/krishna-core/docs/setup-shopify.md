@@ -1,5 +1,19 @@
 # Shopify Admin API — one server, many stores (two steps need you, not me)
 
+## Admin API is the last resort (standing rule, 2026-11-09, Prompt 40)
+
+Every tool in `shopify/server.mjs` calls the Shopify **Admin API** (GraphQL) for `mewebg` or `qastudio`. Reads and writes both count.
+Order of preference:
+1. **Other sources first for reads:** CIS Postgres through the `cis-db` MCP (`message_cache`, `message`, `channelsettings`; QA hosts for
+   mewebg/qastudio data, prod for customers), the `webgility-portal` CIS call (`get_cis_order`), and the local WD database. These
+   only hold data that already synced into CIS/WD.
+2. **Admin API only when there is no other way** (a brand-new store order not synced yet, or any create/update/delete/complete).
+3. **Before any Admin API call:** tell Krishna it is the only way and why, then wait for his confirmation, **even in auto mode**
+   (AskUserQuestion). A yes covers that task only. No answer means no call.
+
+This server has no code-level confirmation gate (editing it is blocked for the assistant), so the gate is the instruction above. If
+you want a hard gate, add a required `confirmed: true` argument to each tool in `server.mjs` yourself.
+
 ## API access policy (standing rule, 2026-10-19)
 
 **GraphQL only, by default, for every Shopify store this touches.** Shopify has deprecated large

@@ -30,6 +30,25 @@ credential (the script's own comment said "VPN uses same creds"). That's why sel
 wasn't working even when it was attempted: wrong account was being sent to `sccli enable`. Fixed
 by adding a dedicated `Get-VpnCreds` reading the correct pair.
 
+**Found and fixed 2026-11-03:** `Test-VpnConnected` matched `"Connected: \d+ \("`, which also
+matches Sophos's own `"Connected: 0 (not connected)"` line — so `vpn-check` falsely reported
+"Connected" while actually disconnected. Fixed to `"Connected: [1-9]\d* \("`. **Don't trust
+`vpn-check`/`vpn-connect`'s own "Connected" line as sufficient** even after this fix — a result
+that disagrees with observed symptoms (no Sophos tray icon, Jenkins/SMB still unreachable) means
+re-verify with the raw command: `& "C:\Program Files (x86)\Sophos\Connect\sccli.exe" get -n
+111.118.255.21 -t endpoints` / `-t dynamic`.
+
+**Distinguish AUTH_FAILED from network-unreachable before retrying — check the logs, don't
+guess.** `C:\Program Files (x86)\Sophos\Connect\openvpn.log` and `scvpn.log` are authoritative.
+If TLS handshake + certificate verify succeed and then the gateway replies `AUTH_FAILED` /
+`"user authentication failed - clearing any stored credentials"`, that is a **rejected
+credential** (expired `VPN_PWD`, an MFA/push step only the interactive Sophos Connect GUI can
+satisfy, or account lockout) — not a reachability problem, and `vpn-connect` retries will not fix
+it. **Stop after 1–2 failed attempts** — repeated failed auth risks locking the account — and
+escalate to Krishna to verify/rotate the credential rather than looping. Sophos Connect's tunnel
+is OpenVPN under the hood (it bundles its own `openvpn.exe`), so "try OpenVPN GUI instead" or a
+dedicated VPN MCP server doesn't route around a rejected credential — same auth path either way.
+
 ## Skill Purpose
 Fix issues accessing Windows network shares (UNC paths like `\\server\share`) over VPN connections when standard authentication fails or hangs.
 

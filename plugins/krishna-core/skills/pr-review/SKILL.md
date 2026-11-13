@@ -99,3 +99,48 @@ These started as one-off asks and are now just how this works, so they don't nee
 - `jira-workflow` §4.1 — the matching "don't post Jira comments unless asked" rule this mirrors.
 - Memory: `pr-review-style-worktree-terse.md` — origin story (PR #10453), now superseded as the
   living process by this file.
+
+## Addressing review comments on Krishna's own PR (standing, 2026-11-03)
+
+- Read every comment, verify each finding against the code **and against the agreed design** (the ticket's Prompts.txt / Implementation md), then decide. Fix only a **real, critical** miss (wrong behaviour, data integrity, or a gap against the agreed design). An asymmetry the design chose on purpose is not a miss. On UD-33709 #10485 the bot called manual-vs-scheduler Fulfilment accept a divergence; "fixing" it broke the user's Yes/No undo choice and was reverted in Prompt 16.
+- Skip suggestions, style/convention nits, performance remarks on non-hot paths, scope/split remarks, "add tests" notes, and anything that matches how the existing code is already written. No edits for low-risk items: the work is already tested.
+- For a high-risk fix: test the impacted area myself (real code path, harness against UnifyDB / QBD sandbox) before reporting; record fixed/skipped + why in the ticket's Implementation plan md. Leave the fix uncommitted unless Krishna asks for commit/push.
+- Reviewing **someone else's** PR keeps the format above: each finding as its own inline comment plus one consolidated summary comment.
+
+## Verifying that a teammate's PR carries our work (PR #10497 vs #10485, 2026-11-06)
+
+Used when someone re-raises our changes in their own branch/PR (ours was declined as "merge via the other branch").
+The method, in order:
+
+1. **Ancestry first, but it only proves commits, not content.** `git merge-base --is-ancestor <our tip> <their tip>` for every branch of
+   ours and every sibling branch they merged. A merge resolution can still drop lines.
+2. **Then diff our tip against theirs, restricted to the files our PR touched** (`git diff -U0 -w <ours> <theirs> -- <files of ours>`)
+   and read every `-` line: those are lines of ours they removed or rewrote. Added-only hunks are other work.
+3. **Check whether "extra" commits are really extra.** A diff between our tip and theirs also shows develop's newer commits. Confirm with
+   `git merge-base --is-ancestor <commit> origin/develop` and count files in `develop..theirs` before saying the PR bundles other tickets.
+4. **Check path symmetry for any new gate.** UI paths (OrderController, AccountingDashboardHelper) and the scheduler (SchedularProfile.vb)
+   post the same orders; confirm a new gate exists on, or is already implied by, all three.
+
+Findings worth reusing:
+- **"Generalizing a node" can silently remove other gates.** The UD-33832 branch dropped the `ENABLE_SALESORDER_UPDATE` rollout gate
+  (UD-32871 modify-in-place) from `IsSupportCartsModifyTransactionOnUpdate`, so the setting becomes visible to every Shopify profile.
+  Not in the PR title. When a PR touches a gate helper, list every node/licence check that disappeared and ask the author to confirm each.
+- **A file on our never-commit list can legitimately change in a teammate's PR.** `AuthenticationController.cs` carried
+  `SALES_ORDER_FULFILLMENT` (licence flag, real feature). Our local-only edit is the single `LicensingMode = "development"` line; check
+  the actual hunk, not the filename, before calling it a leak.
+- **A node can be kept as a transition while a licence replaces it.** `IsCreateInvoiceForShippedItemsEnabled` still honours the exact-match
+  node, so existing node customers keep working; the licence path is additive. Confirm this before assuming a generalization breaks a customer.
+- **PR descriptions built from concatenated commit messages leak internal wording** ("Prompt 16", "review-finding-1", repeated
+  Co-Authored-By lines, doubled apostrophes). Suggest a rewritten description; non-descriptive subjects ("UD-33832", "QA agent suggestion")
+  are worth a one-line mention.
+
+## Lessons from the PR #10497 review (2026-11-06)
+
+- **A node replaced by a settings-driven default is an upgrade-time behaviour flip.** Size the affected population from the code that
+  enables the control today (here `ctrlPayoutSettings`: rule-based profiles already had the payout checkbox enabled), then ask the author
+  for a prod query, not just "is there an opt-out node". An opt-out node is only added after the customer notices.
+- **Lazily filled static registries hide behind node-based QA.** If a licence/settings path reads a per-process dictionary filled at profile
+  load, the exact-match node is checked first and masks it. Anchor the comment on a multi-profile loop or data-layer caller and ask for a
+  test on a profile with no node.
+- **The PR moves while you review.** Re-fetch the source branch before posting inline comments, then confirm the anchors against the commit
+  Bitbucket reports as `src_rev` (`git show <src_rev>:<path> | sed -n <line>p`), and diff the old tip against the new one so the verdict is not stale.

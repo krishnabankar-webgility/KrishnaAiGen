@@ -278,11 +278,13 @@ an estimate someone actually asked for). The rule:
 - **Always break out Analysis + Dev + QA separately, plus the combined total** — never report
   just one combined number.
 - **Analysis is ONE figure for the whole issue, on top of all phases — never split by phase.**
-  Only the **Dev + QA effort** is split into phases, and only when its total goes above 8:
-  cut it into chunks of the implementation of **at most 8 each** (e.g. total 21 -> 8 + 8 + 5),
-  and rate **Dev and QA separately inside each phase** (Dev n + QA n = phase total). Not one
-  phase per Analysis/Dev/QA triple, and not separate Dev-phases and QA-phases lists (Krishna,
-  UD-33709, 2026-10-23, corrected twice).
+  **QA is also ONE separate figure** (Krishna, UD-33880 Prompt 2, 2026-11-09 — supersedes the
+  UD-33709 "Dev + QA inside each phase" format). Only **Dev** is broken down, into work-area
+  parts each with its own SP (`≤ 8`), when Dev is above 8. Add one line saying the breakdown is
+  for estimation only and the implementation is done together in one go.
+- **The posted total must equal the total shown in chat** — re-add the figures before posting;
+  never change the scope or numbers between the chat draft and the Jira comment (UD-33880: chat
+  said 21, the comment said 27, and the chat draft itself added up to 24).
 - **Keep it short and table/point-formatted** — this is a scannable estimate, not a design doc.
 
 **Worked example:** Dev alone is honestly a 13 (too large for one figure) → split Dev into
@@ -299,10 +301,14 @@ Effort Estimate (Story Points, complexity-based, Fibonacci)
 - QA: <n>
 - Combined: <sum>
 
-If the Dev + QA total is above 8, replace the Dev/QA lines with phases (each <= 8):
-- Phase 1 (<scope>): Dev <n> + QA <n> = <n>
-- Phase 2 (<scope>): Dev <n> + QA <n> = <n>
-- Combined: Analysis + all phases
+If Dev is above 8, keep Analysis and QA as single figures and break Dev down (each part <= 8):
+- Analysis: <n>
+- QA: <n>
+- Dev: <sum>
+  - Dev 1 (<scope>): <n>
+  - Dev 2 (<scope>): <n>
+- Combined: Analysis + QA + Dev
+_The Dev breakdown is for estimation only; implementation is done together in one go._
 ```
 
 If nothing in the estimate crossed 8, the phase breakdown is unnecessary — just report the three

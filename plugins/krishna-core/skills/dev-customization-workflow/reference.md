@@ -10,12 +10,18 @@ Use this skill for **customer-specific customization** tasks in this repository.
 
 Set up the workspace, then **tell Krishna in chat**. Krishna then writes his own analysis in the prompt file (manual process); never wait idle - do STEP -1B meanwhile.
 
-**-1A. Scaffold (all four, in order; skip any that already exists, never overwrite):**
+**-1A. Scaffold (all six, in order; skip any that already exists, never overwrite):**
 
 1. **Folder:** `C:\WG-Agentic\Reference\<JIRA-ID>\` (named with the Jira ID only, unless Krishna gives another location) containing `<JIRA-ID>_Prompts.txt` (header + `[Prompt 1]`, CRLF; Krishna fills it later).
+   Also create an empty `<JIRA-ID>.sql` in the same folder (scratch SQL for the ticket: diagnostic queries, test-data setup, QBD/DB checks; Krishna 2026-10-26). Never overwrite an existing one.
 2. **Branch:** `<JIRA-ID>_Krishna` in `unify-enterprise`, cut from **`origin/master`** (fetch first, `--no-track`). Never branch from the current branch.
 3. **Local dev files on the branch** (uncommitted): `Desktop/eCC/Xml/apiConfig.xml` + `Desktop/wg.eCC.Controller/AuthenticationController.cs` taken from the **latest stash** (`git rev-parse stash@{0}` BEFORE doing anything), `apiConfig.xml` pointing `UnifyDB` as the catalog on the local SQL Server. Order that works with a dirty tree: `git stash push` current work -> `git checkout -b <ID>_Krishna --no-track origin/master` -> `git stash apply <latest-stash-SHA>`. The working copy may differ from the stash (ticket-specific `CustomizationNode` list) - the stash wins. Never commit these two files.
 4. **Confluence page** in Personal -> **Customizations** folder (`3027959816`, space `2590998546`, cloud `a8ce84dd-8aa2-4dd1-b893-5b33a896f918`), title `<JIRA-ID> <prefix>` where prefix is the Jira summary prefix (`CIM` / `FR` / `RN-CIM` / `RN-FR` ...). Body = **Customer Issue Ticket Template** (page `3080192055`, tiny `https://webgility.atlassian.net/wiki/x/NwCYtw`; sections: Customer Issue / HubSpot / Development [Branch, Pull Request, Local Build, Technical Doc] / Customization Node / Environment & Access [Zoom Recording, Backup, Implementation Logic / Prompt, Test Orders]). This replaces the older Customization Notes Template for new pages. Fill only what is known (Jira URL + status, HubSpot link, branch, tech-doc path); leave the rest blank, never invent PR/build/node values.
+5. **Jira status (Krishna, 2026-11-09, UD-33880):** move the customer issue to **Design In Progress**, and move each related issue (bug / story / customer issue) to **In Progress** only if it is in the implementation scope. Leave out-of-scope linked issues alone. If a transition is refused (e.g. auto-mode permission), say so; never work around it.
+6. **Customer DB + local login (Krishna, 2026-11-09, UD-33880):** if a customer backup exists, find the existing reference DB (`msdb.dbo.restorehistory` by destination name, or the vault/memory note) and restore the **latest** backup over it with REPLACE (safety `COPY_ONLY` backup of the old copy first); if no reference DB exists, create one named after the Jira ID. Then run `wgDB_alter.sql` then `wgDB_update.sql` from the branch (`db-restore` §5). Then:
+   - `Desktop\eCCDebug\Xml\remme.txt` <- `SchedulerService.Email` + `Password` (line 1 email, line 2 stored password, CRLF, same pattern as the file). Never print the values.
+   - `apiConfig.xml` (both `Desktop\eCC\Xml` and `Desktop\eCCDebug\Xml`): `Initial Catalog=<customer DB>`; `<Mode>prod</Mode>` and comment out `<CIS_URL>` for a customer (prod) DB, `<Mode>dev</Mode>` for a local/QA DB.
+   - Enhancement/fix on an existing customization: append the existing node with the profile ID (`Settings_Profiles.IDProfiles` for the store named in the issue or existing docs). Brand-new request: add the new node only after the implementation plan defines it.
 
 **-1B. Then, without being asked (read-only analysis):**
 
@@ -31,6 +37,14 @@ Read the issue fully + every Jira comment (incl. bot/FR analysis comments), link
 **Housekeeping (Krishna, 2026-10-21):** always `git stash push` any uncommitted work BEFORE switching branches so it is saved for next time; and rename the Claude session chat to the Jira ID only (`/rename <JIRA-ID>`; tell Krishna if it cannot be done from inside the session).
 
 **-1C. Handoff:** report -1A done in chat, keep going on -1B, and when Krishna names a prompt (`Prompt N` in `<JIRA-ID>_Prompts.txt`) take his analysis/plan/feedback there as the next instruction. Chat stays short: gaps, blockers, questions only; detail goes in the md.
+
+**-1D. Close-out Confluence update (Krishna, 2026-11-09, UD-33880):** when all cases and QA bugs are done and the customer issue goes to **Ready for Release** or its PR merges, or when Krishna confirms, update the STEP -1A Confluence page. Below the customer-issue request details, add one short start-to-end technical summary:
+- what this issue's implementation covered
+- extra items done, new behaviour, out-of-scope items, limitations
+- effort estimate before (the Jira estimate comment) vs after implementation and testing, and the PR
+- the QA Jira note: build, branch, node, impacted areas, and other details
+- attach or link the `<JIRA-ID>_ImplementationPlan.md`
+Then link the Confluence page on the main customer issue in Jira.
 
 ---
 
