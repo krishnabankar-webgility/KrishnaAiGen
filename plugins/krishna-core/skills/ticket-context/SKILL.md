@@ -43,10 +43,14 @@ profile ID.
 
 Two places, both worth a look:
 
-- **`unify-enterprise/memories/<module>/`** — one fact per file, JSON or MD, written by
-  previous sessions (`posting/`, `accounting/`, `payout/`, `inventory/`, `channels/`,
-  `cross-domain/`, `qa/`, `shipping/`, `platform/`, `pipelines/`). Grep the whole tree for
-  the ticket ID first — a prior session may have recorded exactly the trap you are about to hit.
+- **`unify-enterprise/memories/<module>/`** and **`unify-enterprise/memories/customizations/`**
+  — one fact (or one full customization context doc) per file, written by previous sessions
+  (`posting/`, `accounting/`, `payout/`, `inventory/`, `channels/`, `cross-domain/`, `qa/`,
+  `shipping/`, `platform/`, `pipelines/`, `customizations/`). **Load on demand only — never
+  read the whole folder wholesale.** Grep/glob the tree for the current ticket ID first, then
+  open only the file(s) that actually match. This is a token-efficiency rule, not a style
+  preference: a session working UD-12345 has no reason to load UD-67890's customization
+  context, however short that file is.
 - **Claude's own memory directory** — check whether a `ticket` or customization note
   already exists for this ID before re-deriving it.
 
@@ -58,7 +62,7 @@ piece was archived, say so and ask before spending the read on it.
 
 ## 3. The ticket itself
 
-Fetch it with the Atlassian MCP tools (`mcp__claude_ai_Atlassian_Rovo__getJiraIssue`).
+Fetch it with the Atlassian MCP tools (`mcp__claude_ai_Atlassian_MCP__getJiraIssue`).
 Read the description, the acceptance criteria, and **the comments** — for customer issues
 the actual requirement is usually in a comment, not the description.
 

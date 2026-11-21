@@ -12,6 +12,11 @@ If a session ever reports the connector unavailable: that's an Anthropic-account
 connection, not a local config problem — check **Settings -> Connectors** on claude.ai, not
 anything in this repo. Re-authorizing there is the fix, not editing `.env` or `wg-mcp.json`.
 
+**Confirmed working live on 2026-09-23** via `getAccessibleAtlassianResources` (returned the
+`webgility` site, cloud ID `a8ce84dd-8aa2-4dd1-b893-5b33a896f918`, with read+write scopes for
+both Jira and Confluence) and `getConfluenceContent` (read the real Overview page body from
+Krishna's personal Confluence space). Full detail in `atlassian-connector-access` in memory.
+
 ## The local fallback (not active by default)
 
 `KrishnaAiGen/.claude/mcp/wg-mcp-optional.json` defines local `jira` and `atlassian` MCP

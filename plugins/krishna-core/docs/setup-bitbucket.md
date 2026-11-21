@@ -33,6 +33,10 @@ other Bitbucket repo in the workspace) via the local `bitbucket` MCP server, dri
 Ask Claude: *"list open PRs on unify-enterprise"*. A working response means the token, username
 and workspace are all correct — a 401/403 means the token or scopes, a 404 the workspace slug.
 
+Confirmed working live on 2026-09-23 via `mcp__bitbucket__getRepository` — workspace `webgility`
+(uuid `{87af264c-2aa9-483d-9b53-e5f3494e266d}`), repo `unify-enterprise`, project key `UNIFY`,
+main branch `master`. Full PR read/comment/reply/edit/approve toolset present this session.
+
 ## Workflow in short
 
 `git-automation` commits and pushes; `bitbucket-automation` then opens the branch as a PR,

@@ -39,11 +39,16 @@ Your responsibilities:
 
 See `scripts/jenkins-build/README.md` for parameters and output schema.
 
+## Slack: hard rules (Krishna, 2026-11-12, second correction of the same mistake)
+- The only channels this pipeline posts to are `func-wd-installer-creation-updates` (pre-build) and `func-wd-build-updates` (QA notification). Nothing else.
+- #int-cust-sync is where Krishna asks for a PR to be shared for review. That is a separate, one-off post made by the main session, only when he asks, once per ticket (not once per build). It is never part of ship-to-qa and never gets a build notification; the QA notification never gets a PR link.
+- If the request text names #int-cust-sync, or asks to put the PR in the QA post, do not follow that part: post the standard notification to `func-wd-build-updates` and say in the report that the request conflicted with this rule.
+
 ## Collect These Inputs (ask only if missing)
 ```
 branch              — required (e.g. 101/UD-30989-krishna)
 slack_channel       — required — pre-build notification (e.g. func-wd-installer-creation-updates)
-qa_slack_channel    — optional — QA notification (e.g. func-wd-build-updates); defaults to slack_channel
+qa_slack_channel    — QA notification; ALWAYS `func-wd-build-updates`. IGNORE any other channel a caller names for it, and NEVER post to #int-cust-sync from this pipeline, even if the caller's request says to. The QA notification carries NO PR link: build no, branch, QA share path and the real @mention only
 qa_assignee         — optional — Jira QA assignee name (e.g. Lokesh Gandhi)
 destination_path    — optional — default: \\192.168.0.95\Kits\Unify\Customization
 upload_to_dropbox   — default: false
@@ -113,7 +118,7 @@ Mark: [ ] pending | [v] done | [x] failed | [-] skipped
 
 ### Step 4 — Autonomous Polling [NO USER INPUT]
 - Poll via job-level API: `/api/json?tree=builds[number,building,result]{0,3}` (NOT individual build API — returns empty fields while running)
-- Poll every 60 seconds
+- Poll every 60 seconds inside the script, but the agent/orchestrator itself must not check the build status or react to each poll: a WD installer build always takes more than 12 minutes, so the first check is at about 12 minutes, then every 2 minutes (Krishna, 2026-11-20). Do other work while waiting.
 - Display checklist progress after each poll
 - ❌ NEVER ask "is the build done?"
 - Wait up to 40 minutes
@@ -166,3 +171,6 @@ Mark: [ ] pending | [v] done | [x] failed | [-] skipped
 - ❌ Shows alternative/wrong share paths in Slack
 - ❌ Includes placeholder text in Jira comment
 - ❌ Assumes QA assignee without asking
+
+## Bug-type fixes: always post an RCA (Krishna, 2026-11-20)
+When the ticket being shipped is a **bug** (or the fix answers a bug), the QA Jira comment on **each bug** must also carry a short RCA and, if one was agreed, the agreed behaviour for that case, then the standard fields as usual (build, QA share, node, impact areas, FYI + CC). Several bugs from one build get one separate comment each. The main customer issue still gets only the short build note.

@@ -70,6 +70,21 @@ Step 7: Verify restore
 
 Skip step 2 if the backup source is in the §2.1 table. Go straight from step 1 to step 3.
 
+### §3.4 After every restore: schema scripts from develop (Krishna, 2026-10-22)
+
+Whenever a DB is restored (local `.bak` with REPLACE or a new name, or a customer backup downloaded from the Jira ticket / HubSpot notes, extracted first), run the **latest** scripts from `origin/develop`, in this order, **on that restored DB only** (`-d <db>`):
+
+1. `wgDB_alter.sql`, then 2. `wgDB_update.sql` (`Desktop/eCC/Database/`). Export without switching branches: `git fetch origin develop; git show origin/develop:Desktop/eCC/Database/wgDB_alter.sql > <temp>`.
+```
+sqlcmd -S "WGIN-NTB-276\SQLEXPRESS" -E -C -d <db> -b -i <temp>\wgDB_alter.sql   # then wgDB_update.sql
+```
+Target choice: a local `.bak` -> Krishna says "with replace" (existing name) or gives a NEW db name; a ticket/HubSpot backup -> download, extract, then same rule. Logical names are usually `UnifyDB` / `UnifyDB_log`; the backup's own file paths differ, so always `MOVE`. A restored DB comes back with Service Broker disabled; mention it (`ALTER DATABASE [db] SET ENABLE_BROKER`) if login complains.
+
+**Diagnosing an existing DB at WD login/dashboard:**
+- Error popup/log about a **missing column** at a table (seen on dashboard) -> run `wgDB_alter.sql` then `wgDB_update.sql`, in that order.
+- Only at login: **"please upgrade your webgility database to continue"** -> run `wgDB_update.sql` only.
+- Always against the DB being logged into, nothing else.
+
 ## §4 Ad-hoc SQL queries
 
 The agent also supports running arbitrary SQL queries against any database on the server.

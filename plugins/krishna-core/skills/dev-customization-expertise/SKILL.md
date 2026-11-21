@@ -25,6 +25,20 @@ Activate this agent when:
 - **One place for the Jira link per customization node:** `Unify-Enterprise/.../wg.eCC.DTO/Shared/CustomizationConstant.cs` — place the `// https://webgility.atlassian.net/browse/UD-…` (or short product note) **immediately above the const** for that node only.
 - **Do not** scatter the same Jira URL, story id, or `UD-####` in method names, regions, inline comments across production files, or interface declarations. Use **neutral, meaningful** comments when behavior needs explanation.
 
+## Adding a new node — always at the end, with a single-line Jira comment
+
+New entries in `CustomizationConstant.cs` go **at the end of the file, below the last existing
+customization node** — never inserted alphabetically or grouped by feature. Keeps the diff for
+a new node a pure append, and keeps node history in the order they were added.
+
+Every new node gets the Jira link **immediately above the const, as a single-line comment** —
+not a block, not a description, just the URL:
+
+```csharp
+// https://webgility.atlassian.net/browse/UD-XXXXX
+public const string NODE_NAME_ = "NODE_NAME_";
+```
+
 ## Ticket type → node definition rule
 
 | Ticket Type | Node Definition Rule | Example |
@@ -36,7 +50,7 @@ Activate this agent when:
 ## Naming and structure
 
 - **Method and type names must be meaningful** (domain language: profile, QB transaction, posting, sync). **Never** embed ticket ids (`UD-32081`, etc.) in identifiers.
-- **Gate at the call site:** `if (CommonUtility.CustomizationNode.Contains(CustomizationConstant.<NODE> + profileId)) { … }` **before** calling customization helpers so idle profiles never pay for parsing or helper entry. Helpers should assume the caller gated **or** document that they are only for customization paths — **do not** hide the only `CustomizationNode.Contains` check inside a helper that is invoked unconditionally from hot paths.
+- **Gate at the call site:** `if (CommonUtility.IsCustomizationNodeEnabledForProfile(CustomizationConstant.<NODE>, profileId)) { … }` **before** calling customization helpers so idle profiles never pay for parsing or helper entry. Helpers should assume the caller gated **or** document that they are only for customization paths — **do not** hide the only node check inside a helper that is invoked unconditionally from hot paths. Never write `CustomizationNode.Contains(<NODE> + profileId)` in new code: it is a substring match (node `_12` also enables profile `1`, UD-33983).
 - **Small vs large changes:** A few lines in an existing method → wrap in the customization `if` inline. Larger logic → **new private/static helper** in the appropriate layer (e.g. `CommonUtility`, controller, DAL) and **call only under the guard**.
 - **`IOrder` / interface surfaces:** Do **not** add block comments or Jira URLs on interface method declarations; document on the implementation if needed.
 
@@ -67,32 +81,78 @@ Activate this agent when:
 - **Separate methods for larger changes:** Add helper methods when logic grows.
 - **No scheduler changes** unless the user **explicitly** requests them.
 
-## Logging and error handling
+## WD house coding conventions — apply while writing, not at review
 
-- Add **Kibana-style** logs for each customization flow:
-  - **Info:** start/end summary, item counts, profile id.
-  - **Debug:** intermediate branch decisions and filters.
-  - **Exception / Error:** API failures, parsing failures, unexpected nulls.
-- Keep exception boundaries clear and user-facing messages **actionable**.
+Mined from 373 reviewer comments on 285 unify-enterprise PRs (2026-11-18, UD-33880 Prompt 12), ranked by how often reviewers raised them. Every one has come back on our own PRs at review time; write the first draft this way instead. Helpers are in `Desktop/wg.eCC.DTO/UtilityFunctions.cs` unless noted.
 
-### Kibana logging — mandatory code pattern
+| # | Write this | Never this on an added line | Raised |
+|---|---|---|---|
+| 1 | `UtilityFunctions.IsNullOrBlank(x)` (C# and VB; = `IsNullOrWhiteSpace(ToStr(x))`) | `string.IsNullOrEmpty`, `string.IsNullOrWhiteSpace`, `x == ""`, `x <> ""` | 23 |
+| 2 | `UtilityFunctions.ToEqual(a, b)` for store/CIS/QB/DB strings (trims, ignores case; **false if either side is null**, even both) | `a == b`, `string.Equals(a, b, OrdinalIgnoreCase)`, `.Trim().ToUpper().Equals()`, VB `=` on such values. A collection comparer (`StringComparer.OrdinalIgnoreCase` in HashSet/Distinct) is fine. | 20 |
+| 3 | Null-guard every link: DTO/settings objects, `Count > 0`, optional QBFC `Ret` elements before `.GetValue()`; match the guard style sibling call sites use | `a?.B.C`, unguarded `Ret.X.GetValue()` | 12 |
+| 4 | Parameterized SQL (`SqlParameter`/`OleDbParameter`, `IN (@id0, @id1)`) ; `UtilityFunctions.SqlStr` only as a last resort | concatenating ids, lists, decimals or dates into SQL | 11 |
+| 5 | Never fail silently: no empty `catch`; return a status and gate follow-ups (history note, next post) on it; keep "read failed" apart from "no rows" | swallowing and carrying on | 10 |
+| 6 | One ticket per PR; `UD-NNNNN` in branch and title; nothing else rides along (other tickets, diagnostics, docs, bitness edits) | | 10 |
+| 7 | Fetch once before the loop / per batch; reuse the caller's controller | DAL call or `new XController()` per row (N+1) | 8 |
+| 8 | `UtilityFunctions.ToStr/ToInt/ToLong/ToDouble/ToDecimal/ToBoolean` | bare `.ToString()` on a nullable/object/cell, `Convert.ToInt32`, `int.Parse` | 7 |
+| 9 | Logic in controller/DAL/helper; new public methods go in the `_Partial` file or a helper, not on god objects (`AccountingSoftwareController`, `OnlineStoreController`, `SchedularProfile`, `CommonUtility`); long work off the UI thread | logic in forms, event handlers, `*.designer.cs` | 7 |
+| 10 | Decide on a status code / HResult / named constant | `ex.Message.Contains(...)`, `message.Contains("404")`, repeated magic literals | 6 |
+| 11 | Change every parallel copy (UI and VB scheduler, manual and auto, insert and update) and list the callers | fixing one of three copies | 5 |
+| 12 | Keep the legacy `ArrayList` contract: `[0]` status, `[1]` count/message, `[2]` data; no new status value unless every caller handles it | `Add("Skipped")` that callers log as a failure | 5 |
+| 13 | Diff = the change only: CRLF kept (`git ls-files --eol`), no re-indent / VS pretty-listing, no BOM | | 5 |
+| 14 | Schema: column in the `CREATE TABLE` in `wgDB.sql` **and** a guarded `IF COL_LENGTH(...) IS NULL ALTER` in `wgDB_alter.sql`; none in `wgDB_update.sql` | | 4 |
+| 15 | T-SQL that runs on SQL Server 2005 in scripts and embedded strings: `DECLARE` then `SET` | `DECLARE @x BIT = 0`, `MERGE`, `IIF`, `STRING_SPLIT`, `TRY_CONVERT`, `STRING_AGG` | 2 |
+| 16 | Locale-independent numbers/dates into SQL or stored fields (`ToString(fmt, CultureInfo.InvariantCulture)`) | culture-formatted decimals/dates | 4 |
+| 17 | A new block never overwrites a field another node/branch already set; guard with `IsNullOrBlank` or an explicit `else` | | 4 |
+| 18 | DALs through the factory (`dataFactory.getOrderDAL()`) | `new OrderDAL()` | 2 |
+| 19 | `.designer.cs`: no accidental Size/Location swaps; TableLayoutPanel/Anchor/Dock over absolute Point/Size | | 2 |
+| 20 | Short code strings (QBD status `"0"`/`"3120"`, `"9999"`) compared with `ToEqual`, not `==`; reuse the existing helper that already owns those codes (`IsQbUndoSyncDeleteSuccess`) | `x.Trim() == "0"` | UD-33880 re-review |
+| 21 | `IN (...)` lists built from user selections: chunk (about 1,000) or use a TVP; SQL Server caps a command at 2,100 parameters | one `@idN` per item, no batching | UD-33880 re-review |
+| 22 | Node-only filters/rules go after the node check inside the method, even when the caller is already guarded; public methods guard themselves | filter first, node check later | UD-33880 re-review |
+| 23 | Scheduler log: write a recurring condition (e.g. a settings conflict) once per change, not once per tick; keep `Dispose`/`components` for WinForms helpers like `ToolTip` | `new ToolTip().SetToolTip(...)` | UD-33880 re-review |
+| 24 | Result messages to the user should use the count the DAL returned, not the size of the selection | `foreach selected: "Deleted"` | UD-33880 re-review |
 
-Every new method handling errors or exceptions **must** include Kibana log statements:
+Two reviewer asks that conflict with standing rules here; follow the rule, and say so in the PR:
+- **Node check style (UD-33880 P13, supersedes P12):** every line the branch adds or rewrites uses `CommonUtility.IsCustomizationNodeEnabledForProfile(NODE, profileId)` (exact match), never `CustomizationNode.Contains(NODE + id)`. Existing develop `Contains` sites are not swept (UD-33709 P16: conflicts with the generic feature-settings work); list them to Krishna as a flag (file:line, node, prefix-collision risk) and change them only when he says so. Even for a prefix-match bug on the ticket's own node, fix the new lines first (UD-33983: the new `IsPurchaseOrderTaskEnabled` alone was enough). The lint script flags `CustomizationNode.Contains(` on added lines.
+- **Unit tests:** customization tickets are verified against the QBD sandbox with a harness instead (`no-unit-tests-verify-against-qbd`). Reviewers keep asking (bot Gate 2), so say in the PR description why there are none.
+
+**Lint before every build and before every push** (it reads only the lines the branch adds):
+```
+git -C <repo> diff origin/develop -U0 -- "*.cs" "*.vb" ":!*.Designer.cs" ":!*.designer.cs" ":!*.Designer.vb" > pr.diff
+python -I plugins/krishna-core/skills/dev-customization-expertise/lint-conventions.py pr.diff
+```
+Zero hits, or every remaining hit has a reason (a value type's `.ToString()`, a collection comparer, a sibling-pattern match). Fix hits on lines you moved from another file too: a move is an added line.
+
+## Logging and error handling — selective, not everywhere
+
+Kibana logs earn their place by being useful during a real investigation, not by covering every
+line. Adding one everywhere is worse than adding none — it's noise that buries the log that
+actually matters when someone's debugging at 2am. Find the **one or two most critical spots** in
+the new flow and log there, not throughout.
+
+- **Error, always:** every `catch` block on the new code path gets `KibanaLogger.LogError`. This
+  is the one log level that's never optional.
+- **Debug, at the two spots that actually help a future debug session:**
+  - Right after an external request is sent and its response collected (the request/response
+    boundary) — this is usually the single highest-value log in a customization, since it's what
+    answers "what did we actually send/get back" without needing `qbsdklog.txt` or a repro.
+  - Anywhere else genuinely load-bearing for tracing *this* flow specifically — not a restatement
+    of what the code already makes obvious.
+- **Info / Warn: avoid unless something specifically needs them.** Don't add a start/end Info
+  log or a Warn on every validation branch by default — only if there's a concrete reason this
+  particular flow needs that visibility (e.g. it runs unattended on a schedule with no other way
+  to confirm it ran).
 
 ```csharp
-// Error logging
-KibanaLogger.LogError("MethodName", exception, profileId);
+// The one debug log worth having — request/response boundary
+KibanaLogger.LogDebug("MethodName", $"Request: {requestSummary}, Response: {responseSummary}", profileId);
 
-// Info / Trace logging (for key operations)
-KibanaLogger.LogInfo("MethodName", "Operation description", profileId);
+// Error — every catch block on the new path
+catch (Exception ex)
+{
+    KibanaLogger.LogError("MethodName", ex, profileId);
+}
 ```
-
-| Scenario | Log Level |
-|----------|-----------|
-| Exception caught in try/catch | Error |
-| Validation failure | Warning |
-| Key business operation start/end | Info |
-| Unexpected null or empty value | Warning |
 
 ## Mandatory code structure pattern
 
@@ -171,16 +231,37 @@ if (IsCustomizationEnabled(...))
   - explicit **high / mid / low-level** explanation after implementation.
 - If wording is ambiguous, align implementation with the **latest clarified** instruction.
 
+## Blockers vs. plan — two separate things, always
+
+For any customer request implementation:
+- **Blockers, open questions, anything needing confirmation** go in the **chat itself**, flagged
+  plainly and as soon as found — not buried inside the implementation plan document.
+- The **implementation plan** stays separate and detailed — a plan document, not a running log
+  of questions.
+- **Don't re-flag what's already resolved.** Before listing a blocker, check whether it was
+  already answered in an earlier prompt or is already settled by the code itself (an existing
+  pattern, an existing node, a prior architecture decision) — if so, it's not a blocker, just
+  apply it and say so in one line rather than re-asking.
+
 ## Completion checklist (after implementation, bugfix, or story — follow in order)
 
-1. **Self-review:** Syntax, null paths, duplication, unnecessary branches; prefer concise C# (including LINQ/lambdas **where they improve clarity**, not density for its own sake).
-2. **Build:** Run the same clean/build the team uses for `Unify-Enterprise` (e.g. Visual Studio **Build Solution** or `dotnet build` / `MSBuild` on the appropriate `.sln`). Fix **all** compile errors introduced or exposed by the change.
-3. **Lint / analyzers:** Address new warnings that indicate real issues; do not broaden scope to pre-existing noise unless asked.
-4. **Unit tests:** Write tests covering the new node condition logic, all new methods, edge cases, and failure scenarios. Run and resolve all failures.
-5. **Code review & optimization:** Remove unnecessary/unused/redundant code. Confirm Kibana log statements are in place for all error and exception paths.
-6. **Git safety check:** Verify branch tracking before any push (see `dev-customization-workflow.skill.md`).
-7. **Jira QA comment:** Add structured QA comment on the Jira ticket after push (see template below).
-8. **Summarize** at high / mid / low level and note QA/rollback as in the post-implementation routine below.
+1. **Diff scope check:** `git diff` (or status) against the ticket's actual requirement — every
+   changed file should be explainable by the change. **Exception:** `apiConfig.xml` and
+   `AuthenticationController.cs` commonly show diffs from local environment/config even when
+   untouched by the change itself — don't flag or revert those two on scope grounds alone, do
+   flag anything else that doesn't map to the requirement.
+2. **Self-review:** Syntax, null paths, duplication, unnecessary branches; prefer concise C# (including LINQ/lambdas **where they improve clarity**, not density for its own sake). Remove any newly written code that ended up unused.
+3. **Build:** Run the same clean/build the team uses for `Unify-Enterprise` (e.g. Visual Studio **Build Solution** or `dotnet build` / `MSBuild` on the appropriate `.sln`). Fix **all** compile errors introduced or exposed by the change.
+4. **Lint / analyzers:** Address new warnings that indicate real issues; do not broaden scope to pre-existing noise unless asked.
+5. **Unit tests:** Write tests covering the new node condition logic, all new methods, edge cases, and failure scenarios. Run and resolve all failures.
+6. **Code review:** Run the `code-review` skill against the diff if available in-session; otherwise apply a generic standard review pass (correctness, null-safety, duplication, blast radius). Fix anything critical it finds, or add explicit handling for it — don't just note it and move on.
+7. **Optimization pass:** If an improvement or optimization is possible within the change's scope (not a drive-by rewrite of unrelated code), make it.
+8. **Comment discipline:** New/changed code gets comments only where the *why* isn't obvious from the code — keep each to **1-3 lines**, never a block or a restatement of what the code does.
+9. **Code review & cleanup:** Remove unnecessary/unused/redundant code. Confirm Kibana log statements are in place for all error and exception paths.
+10. **Regression check:** Re-read the change against every case/scenario/handling this area already covered (existing tests, the architecture-first checklist above) — confirm none of them changed behavior for a profile where the node/setting is absent or disabled. Absent node or setting = existing behavior, unchanged, always.
+11. **Git safety check:** Verify branch tracking before any push (see `dev-customization-workflow.skill.md`).
+12. **Jira QA comment:** Add structured QA comment on the Jira ticket after push (see template below).
+13. **Summarize** at high / mid / low level and note QA/rollback as in the post-implementation routine below.
 
 ## Pre-commit code review checklist
 
@@ -195,6 +276,19 @@ Before presenting code changes for review:
 - [ ] No unnecessary, redundant, or debug code remains
 - [ ] Build is clean — no errors or warnings
 - [ ] Unit tests written and passing
+- [ ] Diff contains only files explainable by the change (`apiConfig.xml`/`AuthenticationController.cs` excepted)
+- [ ] Comments on new code are 1-3 lines, only where the why isn't obvious
+- [ ] Code review pass run (skill if available, generic checklist otherwise) — findings fixed or handled
+- [ ] Confirmed: absent node/setting reproduces existing behavior exactly
+- [ ] Data written under the node traced to **every reader**: when the gated code fills a shared column/DTO field, grep its consumers. List the ones that now see a value. Any reader outside the requirement is named in the impact analysis, or kept unchanged. (UD-33188: `Temp_Items.VarientOption` also feeds Create & Map, the POS grid and the "Item Option" custom-field mapping.)
+- [ ] Installation-wide node (no profile ID) with a store-specific requirement: every gate also checks the store type, so other channels on the same install are untouched
+- [ ] Jira URL / `UD-####` appears **only** on the node line in `CustomizationConstant.cs`. No ticket comments at the gated call sites (the node itself is the reference).
+- [ ] **Fetch `origin/develop` before adding any shared helper and again before shipping.** Grep develop for the same method name/signature. A same-signature copy merges with no textual conflict, then fails to compile (CS0111). Reuse develop's helper. (UD-33188: `IsCustomizationNodeEnabled(string)` landed on develop via UD-33334 after the branch was cut.)
+- [ ] Merge latest `develop` into the ticket branch before shipping. Conflicts at the end of `CustomizationConstant.cs` are normal (both sides append): keep develop's nodes first, ours last. Afterwards check: no conflict markers, no duplicate methods, `git diff origin/develop` shows only our change, build clean.
+- [ ] House conventions table (above) followed from the first draft, and `lint-conventions.py` run on the branch diff: zero hits or each justified. Copying a neighbouring legacy branch does not exempt you.
+- [ ] Every non-node path is identical to `origin/develop`: when the ticket's gate makes code read a new settings DTO, the node-off branch still reads the classic one (UD-33880: PO posting read `LightspeedXPOSettings` for every profile; vendor, class, template, RefNumber and Item Receipt/Bill flags silently changed for everyone else). A new SQL term in a shared stored procedure is also gated (store type in SQL, node in C#).
+- [ ] A value written to a bounded DB column is length-guarded (check the real schema in `wgDB.sql` / `wgDB_alter.sql`, not the local test DB): one over-long value fails the whole batch insert.
+- [ ] Every persistence path covered: insert **and** update (e.g. Shopify incremental download UPDATEs existing `Temp_Items` rows via `UpdateStoreDataRow`, it does not re-insert them)
 
 ## Post-implementation routine
 
@@ -254,6 +348,11 @@ After implementation is pushed to the remote branch, add a comment on the Jira t
 | 🔀 Git Safety | Always verify git status and remote origin before pushing |
 | 🚫 No develop/master | Never push or merge into develop or master — ever |
 | 💬 Jira Comment | Always add QA comment on Jira after push — final mandatory step |
+| 🎯 Scope-Only Diff | Every changed file must map to the ticket — except `apiConfig.xml`/`AuthenticationController.cs` |
+| 🧹 No Dead Code | Remove any newly written code that ended up unused |
+| 🛡️ Silent Fallback | No node/setting present = existing behavior, exactly, every time |
+| ✏️ Short Comments | 1-3 lines, only where the why isn't obvious — never a block |
+| 🔎 Review Before Done | Run `code-review` (or a generic pass) and resolve what it flags as critical |
 
 ## Domain-specific memory (UD-31982–style customizations)
 

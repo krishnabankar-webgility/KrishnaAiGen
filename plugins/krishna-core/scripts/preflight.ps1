@@ -34,8 +34,6 @@ W ''
 # Names only. Values are never read into the report.
 $creds = [ordered]@{
   'JIRA_API_TOKEN'              = 'Jira REST (local jira MCP; the Atlassian connector does not need it)'
-  'BITBUCKET_TOKEN'             = 'Bitbucket push / PR + fetch-bitbucket.ps1'
-  'BITBUCKET_USERNAME'          = 'Bitbucket remote URL (account slug, not the email)'
   'SLACK_BOT_TOKEN'             = 'Slack MCP posting'
   'SLACK_TEAM_ID'               = 'Slack workspace id'
   'KIBANA_WD_AUTH'              = 'Kibana WD HTTPS API (wd-es-kibana)'
@@ -102,6 +100,7 @@ W '| Implementation done, ready for QA (build/share/RFT/Slack/QA comment) | `shi
 W '| Kibana / ES log analysis | `wd-es-kibana` | `/kibana` |'
 W '| Confluence pages | `confluence-automation` | `/confluence` |'
 W '| Slack | `slack-automation` | `/slack` |'
+W '| Answer my Slack DMs on my behalf (auto-reply), pause/resume, mode | `slack-auto-responder` | `/slack-autoreply` |'
 W '| Local SQL Server | `db-automation` | `/db` |'
 W '| Daily digest | `daily-work-update` | `/daily-update` |'
 W '| Windows / VPN / SMB / VM | `sys-troubleshoot` | `/sys-fix` |'

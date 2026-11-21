@@ -11,6 +11,35 @@ copies still use the old name:
 
 ---
 
+## Krishna's standing defaults for a bare "execute ship-to-qa" (2026-10-06, overrides anything below)
+
+1. **Commit + push before building.** Commit the customization's uncommitted changes on the ticket branch and push. Message:
+   `<JIRA-ID> : <new fix/handling or Jira title>`. **Never commit `AuthenticationController.cs` or `apiConfig.xml`** (manual
+   local changes).
+2. **Branch** = `<JIRA-ID>_Krishna`, with the Jira ID taken from the prompt file (`Reference/<ID>/<ID>_Prompts.txt`), if the
+   current code branch matches. Confirm only on a mismatch.
+3. **Bug on a customer issue:** build from the customer issue's branch. RFT 251 + assignee + full comment go on the **bug**. The
+   customer issue gets only a short new-build-info comment.
+4. **Jira comment:** module/functionality-level impact areas only. **No test cases, ever** (this overrides §8.1 "Test Cases").
+   - **Customer issue:** add a simple execution workflow, from "add the node" to the output.
+   - **Bug:** a short RCA plus the handling and the newly impacted areas.
+   - The FYI/CC/field format is in Krishna's memory note `ship-to-qa-workflow`.
+4a. **Jenkins/Bitbucket infra failure (checkout error, SSH host, server disk): do not change Jenkins or Bitbucket config and do not try alternatives** (infra owner: Krishna Panchal; Krishna Bankar's account has no RunScripts permission). Diagnose read-only from the console and Slack, tell Krishna Bankar, wait ~15 min, then DM Krishna Panchal (Slack `U05A4C4ADAN`) with the cause and monitor his replies; retry the build only. See the memory note `jenkins-build-checkout-failure-self-fix`.
+5. **QA share (when not given):** `\\192.168.0.95\Kits\Unify\WebgilityInstaller_<version>\Customizations`, where
+   `<version>` is the ticket's Jira **Fix versions** value (`Desktop-9.12.2` → `9.12.2`). This is **not** the newest
+   folder on the share: that one is often a version already released (check the release posts in the build/release
+   update channel). Create `WebgilityInstaller_<version>` and/or `Customizations` if they are missing. Use the newest
+   unreleased folder only when the ticket has no Fix Version, and say so.
+6. **Slack:** `func-wd-installer-creation-updates` (pre-build) and `func-wd-build-updates` (QA notify, real `<@id>` mention).
+   **The standard workflow is fixed (Krishna, 2026-11-09, Prompt 40).** The 2nd (QA) notification always goes to `func-wd-build-updates`,
+   never to #int-cust-sync or any other channel. Anything extra he asks for in the same run (for example sharing the PR for review in
+   another channel) is a **separate additional post**: it never replaces, merges into or re-routes a standard step, and the standard
+   posts are still sent. Don't alter or skip a standard step unless he says so explicitly. **Second correction, 2026-11-12:** the rule was broken again by the caller's brief naming #int-cust-sync for the QA post (builds 6672 and 6688 both went there, and the `func-wd-build-updates` notification was skipped). The PR share to #int-cust-sync is the main session's one-off post, only on request and only once per ticket; the QA notification never contains a PR link.
+7. **QA assignee:** default **Rajat Lodhi** unless named.
+8. **Update the Confluence Customization Notes page** for the main Customer Issue (`confluence-workflow` §9, folder `3027959816`, page titled `UD-<CUSTOMER_ISSUE_ID> <SUFFIX>`) with whatever is now known and wasn't before: **Build No**, **Customization node**, and **PR** link, at minimum — check the page for any other blank field this run's work can now fill (the template leaves Build/PR/node blank until a build actually exists, per §9's "never invent" rule; after a successful ship this is the moment to fill them in). Do this after Step 6 (artifact confirmed) rather than waiting for the whole pipeline to finish, so it isn't missed if a later step is skipped. **Scope of this update (Krishna, UD-33709 Prompt 15, 2026-10-29) - after the ship completes, the page gets all of:** (a) the **Jira status** (now RFT / Ready For Testing, with the QA assignee); (b) the **customization node(s)** used, profile-scoped form; (c) a **high-level technical do**: the new handlings/implementation in main points only (what changed per area, what is node-gated, known limits) - no file-by-file detail; (d) the Build No, PR link and QA share path as above; and (e) **the ticket's Implementation plan md** (`Reference/<ID>/<ID>_Implementation*.md`) **attached to the page** (Confluence attachment via the Atlassian connector/REST) **and linked** in the Technical Doc / Implementation Logic field for further reference - if the upload fails, link the file's repo/Reference path and say so. Re-ship = update the same page, do not create a second one. Keep the implementation plan md current before attaching it (one plan md per ticket).
+
+---
+
 ## ⚡ Preferred: Autonomous Script (97% Token Reduction)
 
 **Use the autonomous PowerShell script instead of manual step-by-step AI orchestration.**
@@ -668,12 +697,23 @@ if ($rftTransition) {
         -Body $transBody -TimeoutSec 15
     Write-Host "  ✅ Jira status → $($rftTransition.name) (ID: $($rftTransition.id))"
 } else {
-    Write-Warning "  ⚠️ RFT transition not found. Available: $($transitions.transitions.name -join ', ')"
-    Write-Host "  → Ask user which transition to use, or skip."
+    Write-Warning "  ⚠️ RFT transition not found via this script's own transition list."
+    Write-Host "  → DO NOT stop here or silently skip — this looks identical to 'Jira write is"
+    Write-Host "    broken' from the user's side even when it isn't (confirmed 2026-10-16, see"
+    Write-Host "    jira-workflow skill §4.1). Fall back to the Atlassian MCP connector directly"
+    Write-Host "    for this one ticket: call listJiraIssueTransitions, then transitionJiraIssue"
+    Write-Host "    with whichever id matches RFT/Ready For Testing/QA. Only if THAT also can't"
+    Write-Host "    find a matching transition, tell the user and show the full transition list."
 }
 
 Write-Host "✅ [Step 7 — Jira Assignee + RFT] DONE"
 ```
+
+**If the PowerShell step above hits the `else` branch, Claude itself (not the script) finishes the
+job**: call the Atlassian MCP connector's `listJiraIssueTransitions` for `$jiraTicketId`, find the
+RFT/Ready-For-Testing/QA transition from that list, call `transitionJiraIssue`, then read the issue
+back to confirm the status actually changed before reporting Step 7 as done. Don't report ship-to-qa
+as complete with the status silently unchanged.
 
 ---
 
@@ -838,7 +878,7 @@ CC: @QA @Hitesh Devashrayee
 | Limitations | Jira description | Section labeled "Limitations:" |
 | Impacted Area | PR commits / code changes | `git log --no-merges origin/develop..origin/<branch>` + `git show --stat` — describe at **module/workflow** level only (NO file names) |
 | Test Cases | Customer requirements + implementation logic | Derive from: (1) Jira description use cases, (2) code behavior (happy/edge/negative paths), (3) Confluence CIM page if exists |
-| Links (DB, QBD, creds) | Jira description + Confluence personal page | Parse Dropbox links, credentials, test orders from Jira. Also check `searchConfluenceUsingCql` for page titled with Jira ID in personal space |
+| Links (DB, QBD, creds) | Jira description + Confluence personal page | Parse Dropbox links, credentials, test orders from Jira. Also check `searchConfluence` for page titled with Jira ID in personal space |
 | Customization Workflow | Implementation knowledge + Jira | How to enable node, what config is needed, execution steps, expected result |
 | CC | Default list | Always: `@Hitesh Devashrayee @Arvind Chavan`. Add others if mentioned in Jira. |
 
@@ -846,12 +886,12 @@ CC: @QA @Hitesh Devashrayee
 
 1. **Extract Jira ID** from branch name (pattern `UD-\d+`)
 2. **Fetch Jira Issue** — `getJiraIssue(issueIdOrKey)` → get description, store, accounting, limitations, links, credentials
-3. **Check Confluence personal space** — `searchConfluenceUsingCql` with `title ~ "<JiraID>"` → get CIM page with DB links, implementation notes, node info
+3. **Check Confluence personal space** — `searchConfluence` with `title ~ "<JiraID>"` → get CIM page with DB links, implementation notes, node info
 4. **Check branch commits** — `git log --oneline --no-merges origin/develop..origin/<branch>` → get commit messages (skip merge commits)
 5. **Check code changes** — `git show --stat <commit>` → identify impacted modules (describe high-level only, NO file names for QA)
 6. **Get CustomizationConstant.cs diff** — `git diff origin/develop..origin/<branch> -- "**/CustomizationConstant.cs"` → extract new node constant name
 7. **Draft comment** → present to user for review before posting
-8. **Post via MCP** — `addCommentToJiraIssue` using ADF format with proper @mention account IDs
+8. **Post via MCP** — `addOrEditJiraIssueComment` using ADF format with proper @mention account IDs
 
 ### 8.4 — Important Rules
 

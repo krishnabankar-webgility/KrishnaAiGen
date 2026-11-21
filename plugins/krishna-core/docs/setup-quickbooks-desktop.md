@@ -1,4 +1,12 @@
-# QuickBooks Desktop — current state (no live connector exists)
+# QuickBooks Desktop — superseded by setup-qbd-sellfromhome.md
+
+**2026-10-13: Krishna asked for this to be built.** See
+[setup-qbd-sellfromhome.md](setup-qbd-sellfromhome.md) for the live setup — a direct QBXMLRP2
+connection to the `SellFromHome.qbw` sandbox, same automation layer `unify-enterprise` itself
+uses. This file stays as the historical record of the gap and the reasoning that went into the
+build (why QBXMLRP2 over QBFC, the one-time approval dialog, same-file concurrent access).
+
+---
 
 Being direct about this one: **there is no MCP server, plugin, or connector today that gives
 Claude a live connection to QuickBooks Desktop.** Checked `wg-ai-workspace/.mcp-servers/` — the
@@ -12,9 +20,10 @@ C:\Users\Public\Documents\Intuit\QuickBooks\Company Files\SellFromHome.qbw
 ```
 
 Krishna's local testing/sandbox QBD company file — the one `UnifyDB` posts against locally.
-Read/write **against this specific file** is fine for testing (it's local and disposable, not a
-customer's data) — but see below: nothing today actually gives Claude a live connection to
-drive that read/write itself. `.qbw` is a proprietary QuickBooks database format, not something
+**Full read and write access is explicitly allowed** against this specific file (it's local and
+disposable, not a customer's data). Credentials: Windows user env var **`QBD_CREDS`**
+(`un:<username>, pwd:<password>`) — but see below: nothing today actually gives Claude a live
+connection to drive that read/write itself. `.qbw` is a proprietary QuickBooks database format, not something
 readable as plain bytes, so "access" here means through QuickBooks Desktop's own QBXML/QBFC
 automation, not direct file I/O — `qbsdklog.txt` (`C:\ProgramData\Intuit\QuickBooks\qbsdklog.txt`)
 is where every request/response WD already sends to it gets logged, and is the fastest way to

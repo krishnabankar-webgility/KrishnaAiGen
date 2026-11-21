@@ -76,7 +76,7 @@ If `JIRA_EMAIL` (set in `.cursor/mcp.json`) is present, prefer Jira's own `curre
 |--------|-------------------|-------|
 | Slack MCP | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` | See `slack-integration.skill.md`. Bot is already in `#my-daily-update`. |
 | Jira MCP **or** REST | `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_BASE_URL` | See `.cursor/mcp.json` `jira` server. REST works without the MCP. |
-| Bitbucket | `BITBUCKET_USERNAME`, `BITBUCKET_TOKEN` | See `bitbucket-unify-enterprise.skill.md`. **Only** source for repo commits/PRs in the digest (`unify-enterprise`). **REST returns 401 — use git (+ BB MCP if configured).** |
+| Bitbucket | `BITBUCKET_USERNAME`, `BITBUCKET_PASSWORD` | See `bitbucket-unify-enterprise.skill.md`. **Only** source for repo commits/PRs in the digest (`unify-enterprise`). **REST returns 401 — use git (+ BB MCP if configured).** |
 | Google Workspace MCP **or** direct API | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `USER_GOOGLE_EMAIL`, `GOOGLE_REFRESH_TOKEN` | **`google-workspace`** MCP via `uvx workspace-mcp` (Calendar + Gmail + Drive, read-only). On **Cloud Agents** where MCP is unavailable, `GOOGLE_REFRESH_TOKEN` enables the **direct API fallback** via `scripts/google-calendar-fallback.py` and `scripts/google-gmail-fallback.py`. Run `scripts/bootstrap-google-credentials.py` first. |
 | Confluence (optional) MCP **or** REST | `JIRA_EMAIL`, `JIRA_API_TOKEN` (shared with Jira) | **New pages only** in the Yesterday window (§D). Uses Atlassian MCP (`plugin-atlassian-atlassian`) when connected; otherwise falls back to `scripts/confluence-fallback.py` using the same Jira credentials (Atlassian API tokens work for both Jira and Confluence REST). Do **not** report edits to existing pages. |
 
@@ -222,7 +222,7 @@ Bitbucket `unify-enterprise` (Krishna's primary repo for product work). **Bitbuc
 
 ```bash
 # Auth + remote URL per bitbucket-unify-enterprise.skill.md.
-ENC_TOKEN=$(python3 -c "import os,urllib.parse; print(urllib.parse.quote(os.environ['BITBUCKET_TOKEN'], safe=''))")
+ENC_TOKEN=$(python3 -c "import os,urllib.parse; print(urllib.parse.quote(os.environ['BITBUCKET_PASSWORD'], safe=''))")
 git clone --depth 200 \
   "https://${BITBUCKET_USERNAME}:${ENC_TOKEN}@bitbucket.org/webgility/unify-enterprise.git" \
   /tmp/unify-enterprise
@@ -273,7 +273,7 @@ python scripts/confluence-fallback.py --json
 This uses `JIRA_EMAIL` + `JIRA_API_TOKEN` + `JIRA_BASE_URL` (same credentials as Jira — the Atlassian API token works for both Jira and Confluence REST). The script searches for pages **created by Krishna** in the Yesterday IST window. No additional secrets are needed.
 
 **Decision tree for source D:**
-- Atlassian MCP (`plugin-atlassian-atlassian`) connected → use `searchConfluenceUsingCql` MCP tool.
+- Atlassian MCP (`plugin-atlassian-atlassian`) connected → use `searchConfluence` MCP tool.
 - MCP **not** connected **but** `JIRA_EMAIL` + `JIRA_API_TOKEN` are set → run `scripts/confluence-fallback.py --json`. Mark source as `Confluence ✅ (REST API)` in footer.
 - Neither MCP nor Jira credentials → skip source D, note `Confluence (not configured)` in *Sources skipped*.
 
@@ -571,7 +571,7 @@ Krishna runs this from **Cursor Dashboard → Cloud Agents → New Schedule** (o
 |--------|--------------|
 | `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_BASE_URL` | Jira REST/MCP |
 | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` | Slack MCP (write to `#my-daily-update`) |
-| `BITBUCKET_USERNAME`, `BITBUCKET_TOKEN` | `unify-enterprise` clone & `git log` |
+| `BITBUCKET_USERNAME`, `BITBUCKET_PASSWORD` | `unify-enterprise` clone & `git log` |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | Google Workspace MCP (Calendar + Gmail + Drive, §E) |
 | `GOOGLE_REFRESH_TOKEN` | **Required for Cloud Agents** — enables direct API fallback when `google-workspace` MCP is not connected. Obtain via `scripts/extract-google-refresh-token.py` locally. |
 | `USER_GOOGLE_EMAIL` | Default Google account for `workspace-mcp` (optional but recommended) |

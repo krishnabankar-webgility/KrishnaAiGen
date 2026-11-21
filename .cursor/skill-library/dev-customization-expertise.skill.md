@@ -31,7 +31,7 @@ Activate this agent when:
 ## Naming and structure
 
 - **Method and type names must be meaningful** (domain language: profile, QB transaction, posting, sync). **Never** embed ticket ids (`UD-32081`, etc.) in identifiers.
-- **Gate at the call site:** `if (CommonUtility.CustomizationNode.Contains(CustomizationConstant.<NODE> + profileId)) { … }` **before** calling customization helpers so idle profiles never pay for parsing or helper entry. Helpers should assume the caller gated **or** document that they are only for customization paths — **do not** hide the only `CustomizationNode.Contains` check inside a helper that is invoked unconditionally from hot paths.
+- **Gate at the call site:** `if (CommonUtility.IsCustomizationNodeEnabledForProfile(CustomizationConstant.<NODE>, profileId)) { … }` **before** calling customization helpers so idle profiles never pay for parsing or helper entry. Helpers should assume the caller gated **or** document that they are only for customization paths — **do not** hide the only node check inside a helper that is invoked unconditionally from hot paths. Never write `CustomizationNode.Contains(<NODE> + profileId)` in new code: it is a substring match (node `_12` also enables profile `1`, UD-33983). Existing develop `Contains` sites are flagged to Krishna, not swept, and changed only when he says so; for a prefix-match bug, fix the new lines first.
 - **Small vs large changes:** A few lines in an existing method → wrap in the customization `if` inline. Larger logic → **new private/static helper** in the appropriate layer (e.g. `CommonUtility`, controller, DAL) and **call only under the guard**.
 - **`IOrder` / interface surfaces:** Do **not** add block comments or Jira URLs on interface method declarations; document on the implementation if needed.
 
@@ -61,6 +61,10 @@ Activate this agent when:
 - **Small-change strategy:** If small edits are enough, avoid new abstractions.
 - **Separate methods for larger changes:** Add helper methods when logic grows.
 - **No scheduler changes** unless the user **explicitly** requests them.
+
+## WD house coding conventions — apply while writing
+
+The ranked table (mined from 373 reviewer comments on 285 unify-enterprise PRs) and the lint script live in `plugins/krishna-core/skills/dev-customization-expertise/` (`SKILL.md` section of the same name, `lint-conventions.py`). Top rules: `UtilityFunctions.IsNullOrBlank` (never `string.IsNullOrEmpty/IsNullOrWhiteSpace`, `== ""`); `UtilityFunctions.ToEqual` for store/CIS/QB/DB strings (false if either side is null); null-guard every dereference link; parameterized SQL; no empty catch, gate follow-ups on a status; one ticket per PR; no per-row DAL calls; `ToStr/ToInt/ToLong/ToDecimal` over `.ToString()`/`Convert`/`Parse`; no control flow on message text; SQL Server 2005-safe T-SQL. New code checks nodes with `IsCustomizationNodeEnabledForProfile`; existing `CustomizationNode.Contains` sites stay as they are. Run the lint on `git diff origin/develop -U0` before building.
 
 ## Logging and error handling
 
@@ -190,6 +194,16 @@ Before presenting code changes for review:
 - [ ] No unnecessary, redundant, or debug code remains
 - [ ] Build is clean — no errors or warnings
 - [ ] Unit tests written and passing
+- [ ] Confirmed: absent node/setting reproduces existing behavior exactly
+- [ ] Data written under the node traced to **every reader**: when the gated code fills a shared column/DTO field, grep its consumers. List the ones that now see a value. Any reader outside the requirement is named in the impact analysis, or kept unchanged.
+- [ ] Installation-wide node (no profile ID) with a store-specific requirement: every gate also checks the store type
+- [ ] Jira URL / `UD-####` appears **only** on the node line in `CustomizationConstant.cs`. No ticket comments at the gated call sites.
+- [ ] Fetch `origin/develop` before adding any shared helper and again before shipping; grep it for the same method name/signature (a same-signature copy merges cleanly, then fails to compile with CS0111). Reuse develop's helper.
+- [ ] Merge latest `develop` into the ticket branch before shipping; resolve `CustomizationConstant.cs` tail conflicts as develop's nodes first, ours last; then no conflict markers, no duplicate methods, `git diff origin/develop` shows only our change, build clean.
+- [ ] House conventions followed from the first draft and `lint-conventions.py` run on the branch diff (zero hits or each justified).
+- [ ] Node off = `origin/develop` behaviour on every path, including the classic settings DTO a gated path used to read and any new term in a shared stored procedure.
+- [ ] A value written to a bounded DB column is length-guarded against the real schema (`wgDB.sql` / `wgDB_alter.sql`).
+- [ ] Every persistence path covered: insert **and** update (e.g. Shopify incremental download UPDATEs existing `Temp_Items` rows via `UpdateStoreDataRow`)
 
 ## Post-implementation routine
 

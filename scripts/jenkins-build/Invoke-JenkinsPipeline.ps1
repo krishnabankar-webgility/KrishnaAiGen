@@ -117,7 +117,8 @@ function Exit-Pipeline {
 # that conflict as duplicate keys with different casing (e.g. refs/remotes/origin/Hotfix/hotfix_7121 vs hotfix/hotfix_7121)
 function Invoke-JenkinsJson {
     param([string]$Url)
-    $raw = curl.exe -s -u "$($env:JENKINS_USERNAME):$($env:JENKINS_API_TOKEN)" $Url
+    # -g: disable curl URL globbing, else tree=...[..]{..} URLs fail (exit 3) and return nothing
+    $raw = curl.exe -s -g -u "$($env:JENKINS_USERNAME):$($env:JENKINS_API_TOKEN)" $Url
     return ($raw | ConvertFrom-Json)
 }
 

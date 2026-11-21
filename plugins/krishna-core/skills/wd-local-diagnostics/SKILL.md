@@ -19,6 +19,10 @@ looking at a repo clone running from source, or an installed build:
 | **Local debug (repo clone)** | `<repo-root>\unify-enterprise\Desktop\eCCDebug\ErrorLog` | `<repo-root>\unify-enterprise\Desktop\eCCDebug\SchedulerLog` |
 | **Installed WD app** | `C:\Webgility\UnifyEnterprise\ErrorLog` | `C:\Webgility\UnifyEnterprise\SchedulerLog` |
 
+Installed-app config: `C:\Webgility\UnifyEnterprise\XML\apiConfig.xml` (the repo-clone one is `Desktop\eCC\Xml\apiConfig.xml`). When Krishna runs the **installer** build, read logs and config from `C:\Webgility\UnifyEnterprise\`, not from `eCCDebug`.
+
+**Re-downloading a customer's order on a restored DB: match `CIS_URL` to the customer's environment first.** `CIS_URL` in that `apiConfig.xml` picks which CIS WD talks to. A prod customer (logged in with their own WD login) needs `https://cis.webgility.com`; left on `https://cisqa.webgility.com`, the re-download fails as if the token were stale, because QA CIS has no channel for that customer. Don't touch `Settings_Profiles.ShopifyAccessToken`: with the URL fixed, the order re-downloads with its `ShipmentItemsDetails` and posts its invoice and payment (proven on Sari Browar order 3397, UD-33822, 2026-10-29).
+
 **`<repo-root>` varies** — `C:\WG-Agentic\unify-enterprise`, `C:\WG-Agentic 2\unify-enterprise`,
 or any other clone location (`C:\<FolderName>\unify-enterprise`, `C:\unify-enterprise`, a
 different drive letter entirely). The part that never changes is everything from
@@ -47,6 +51,25 @@ ErrorLog_<D-Mon-YY>        e.g. ErrorLog_7-Apr-26
 If today's file doesn't show the issue (or doesn't exist yet — e.g. investigating first thing
 in the morning), check yesterday's before concluding there's nothing logged.
 
+**Order download request/response is in the `_Warn` file, not `_Error` or `_Info`.** When an
+order is downloaded from the platform (via CIS) into the WD DB, the request and response —
+including the order JSON payload itself — is logged at **Warn** level in the manual ErrorLog
+folder. Check `_Warn` first for anything about what CIS actually sent for a given order.
+
+## 1a. Clear log history before you run a test yourself
+
+When you (not the user) are about to exercise a QBD or WD code path to verify something —
+running a manual test scenario, reproducing a bug, checking a fix — **clear/remove the relevant
+log file(s) first** so the run you're about to do produces a clean, unambiguous log to read
+afterward, not one mixed in with everything that happened before it:
+
+- Touching QBD → clear `qbsdklog.txt` first.
+- Touching WD → clear the relevant `_Error`/`_Info`/`_Debug`/`_Warn` files (and the scheduler
+  `ProcessingLog`/`ErrorLog` files if the scheduler path is involved) before the run.
+
+This is about *your own* verification runs, not a customer's or QA's logs — never clear a log
+that's evidence for an issue someone else reported.
+
 ## 2. QuickBooks SDK log
 
 ```
@@ -72,22 +95,37 @@ returned by) QuickBooks itself.
 `UnifyDB` is local and testing-only — any operation, read or write, no extra confirmation
 needed. Every other database on that server is read-only unless explicitly told otherwise.
 
+**ProfileID 11 is the designated test profile.** For analysis/reproduction work — editing an
+order's details in `UnifyDB` and reposting it to the QBD sandbox to reproduce a reported issue,
+or any other data-change/unit-testing on an order — use **ProfileID = 11**. This is explicitly
+allowed (edit any order's data under that profile, post to the QBD sandbox company file, repeat
+as needed); it does not relax the read-only rule for anything outside `UnifyDB` and the sandbox
+`.qbw` itself — other profiles/databases stay read-only.
+
 ## 4. QBD sandbox company file
 
 ```
 C:\Users\Public\Documents\Intuit\QuickBooks\Company Files\SellFromHome.qbw
 ```
 
-This is the local, testing-only company file `UnifyDB` posts against — read and write
-operations against *this specific file* are fine for testing/sandbox work. Note it's a
-proprietary QuickBooks file format, not something readable as plain bytes — "read/write" here
-means through QuickBooks Desktop's own QBXML/QBFC automation (see `qbsdklog.txt` above to see
-what was actually sent), not direct file I/O. **There is currently no MCP server or plugin that
-gives Claude a live connection to it** — see
-[setup-quickbooks-desktop.md](../../docs/setup-quickbooks-desktop.md) for what exists today (code
-and DB access) versus what a live connector would take. Until one exists, credentials for
-whatever *does* touch it go through a Windows user env var, same as everything else here — never
-into a repo file.
+This is the local, testing-only company file `UnifyDB` posts against — **full read and write
+access is explicitly allowed** against *this specific file*, since it's local and testing-only,
+not a customer's data. Note it's a proprietary QuickBooks file format, not something readable as
+plain bytes — "read/write" here means through QuickBooks Desktop's own QBXML/QBFC automation
+(see `qbsdklog.txt` above to see what was actually sent), not direct file I/O.
+
+**Live since 2026-10-15: the `quickbooks-desktop` MCP server** gives Claude a direct connection —
+its `ExecuteQbxml` tool runs a raw QBXML request against whichever company file `QBD_COMPANY_FILE`
+points at (currently `SellFromHome.qbw`). **Use this MCP connection first** for any live QBD
+read/write going forward, instead of the reflection-harness/compiled-code-probe workaround — that
+workaround is still valid for anything the MCP's one generic tool doesn't cover, but the direct
+connection is faster and doesn't need the app's own compiled code as a vehicle. See
+[setup-qbd-sellfromhome.md](../../docs/setup-qbd-sellfromhome.md) for the server itself (why
+QBXMLRP2, the one-time approval dialog, same-file concurrency with manual QB use) —
+`setup-quickbooks-desktop.md` is superseded/historical only.
+
+**Credentials:** Windows user env var **`QBD_CREDS`** — holds `un:<username>, pwd:<password>`
+for this company file. Reference by name only, never print the value.
 
 ---
 > Captured from a working-style walkthrough (see `krishnaaigen-skill-evolution`) — this is

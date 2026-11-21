@@ -1,0 +1,39 @@
+{
+  "oauth_config": {
+    "scopes": {
+      "user": [
+        "channels:history",
+        "channels:read",
+        "chat:write",
+        "groups:history",
+        "groups:read",
+        "im:history",
+        "im:read",
+        "mpim:history",
+        "mpim:read",
+        "search:read",
+        "users.profile:read",
+        "users:read"
+      ],
+      "bot": [
+        "app_mentions:read",
+        "assistant:write",
+        "bookmarks:read",
+        "bookmarks:write",
+        "calls:read",
+        "calls:write",
+        "canvases:read",
+        "canvases:write",
+        "channels:history",
+        "channels:read",
+        "chat:write",
+        "chat:write.customize",
+        "im:history",
+        "im:read",
+        "im:write",
+        "reactions:write",
+        "users:read"
+      ]
+    }
+  }
+}

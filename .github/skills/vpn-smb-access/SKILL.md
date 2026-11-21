@@ -5,6 +5,33 @@ description: "Use when: cannot access UNC path over VPN, network share not acces
 
 # VPN + SMB Network Share Access Fix
 
+## Before anything else: is VPN even connected? Check and self-heal first
+
+Any task failing because an internal host is unreachable (DB/ES/proxy, UNC share, Jenkins) should
+self-heal VPN before stopping to ask the user:
+```powershell
+C:\WG-Agentic\KrishnaAiGen\scripts\vm-manager.ps1 vpn-check
+C:\WG-Agentic\KrishnaAiGen\scripts\vm-manager.ps1 vpn-connect
+```
+Uses Sophos Connect (`sccli.exe`) with the **`VPN_UN`/`VPN_PWD`** Windows user env vars (corp
+domain account — separate from `RDP_UN`/`RDP_PWD`, the VM-local RDP account).
+
+**`vpn-check` had a false-positive regex bug, fixed 2026-11-03:** it matched `"Connected: \d+
+\("`, which also matches `"Connected: 0 (not connected)"`, so it reported "Connected" while
+actually disconnected. Fixed to `"Connected: [1-9]\d* \("`. Still re-verify with the raw command
+if a "Connected" result disagrees with symptoms (no tray icon, Jenkins/SMB unreachable):
+`& "C:\Program Files (x86)\Sophos\Connect\sccli.exe" get -n 111.118.255.21 -t endpoints` / `-t dynamic`.
+
+**Distinguish AUTH_FAILED from network-unreachable before retrying — check the logs.**
+`C:\Program Files (x86)\Sophos\Connect\openvpn.log` / `scvpn.log` are authoritative. If TLS
+handshake + cert verify succeed and the gateway then replies `AUTH_FAILED` / `"user
+authentication failed - clearing any stored credentials"`, that's a **rejected credential**
+(expired `VPN_PWD`, an MFA/push step only the interactive GUI can satisfy, or account lockout) —
+not reachability, and retries won't fix it. **Stop after 1–2 attempts** (repeated failed auth
+risks account lockout) and escalate to Krishna to verify/rotate the credential. Sophos Connect's
+tunnel is OpenVPN under the hood (bundles its own `openvpn.exe`), so switching to "OpenVPN GUI"
+or a dedicated VPN MCP doesn't route around a rejected credential — same auth path either way.
+
 ## When to Use
 
 - You are connected to a VPN (Sophos, OpenVPN, Cisco AnyConnect, etc.)

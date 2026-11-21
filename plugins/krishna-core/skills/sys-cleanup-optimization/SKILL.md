@@ -114,6 +114,21 @@ Get-ChildItem "$env:SystemRoot\Prefetch" -Force -ErrorAction SilentlyContinue | 
 if (Test-Path "C:\Temp") { Get-ChildItem "C:\Temp" -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
 ```
 
+### Phase 2b — Logs and leftovers (Prompt 35; measure first, report sizes, then clear)
+
+Safe to clear without asking (regenerated on demand), after reporting size:
+```powershell
+# Report sizes first
+@("$env:LOCALAPPDATA\Temp","$env:SystemRoot\Temp","$env:SystemRoot\Logs\CBS","$env:LOCALAPPDATA\Microsoft\Windows\WER","$env:ProgramData\Microsoft\Windows\WER",
+  "$env:SystemRoot\SoftwareDistribution\Download","$env:LOCALAPPDATA\CrashDumps","C:\WG-Agentic\.logs") | % { if(Test-Path $_){ "{0,-60} {1,8:N0} MB" -f $_,((gc -r -force $_ -ea 0 | measure Length -sum).Sum/1MB) } }
+# Old VS/VS Code logs, MiniDumps, Windows Update download cache (stop wuauserv first, admin), SQL error-log archives (ERRORLOG.1-6, keep current)
+Get-ChildItem "$env:APPDATA\Code\logs" -Directory -ea 0 | ? LastWriteTime -lt (Get-Date).AddDays(-7) | Remove-Item -Recurse -Force -ea 0
+Get-ChildItem "$env:SystemRoot\Minidump" -ea 0 | Remove-Item -Force -ea 0
+```
+Older than 7 days only: Claude/VS Code logs, WD app logs under `C:\ProgramData` / eCCRelease `Logs` (keep today + yesterday: `wd-local-diagnostics` uses them),
+`.bak` files in temp. NEVER clear: protected folders, `C:\MSSQL_DATA`, `Reference\*`, `.claude\projects` transcripts/memory, any `.bak` kept for a ticket.
+Ask first: Windows.old, WinSxS cleanup (`DISM /Online /Cleanup-Image /StartComponentCleanup`), SQL database drops (needs the done-ticket list, `.bak` first).
+
 ### Phase 3 — Developer Cache Cleanup (Ask Before If Large)
 
 ```powershell
@@ -179,6 +194,20 @@ Always confirm with user before uninstalling.
 # Find installed apps
 Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*","HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*","HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName } | Select-Object DisplayName, DisplayVersion, InstallDate, @{N='SizeMB';E={[math]::Round($_.EstimatedSize/1024,0)}} | Sort-Object DisplayName | Format-Table -AutoSize
 ```
+
+### Phase 6 — Services / process audit (read-only first, then offer)
+
+Baseline and categories live in `Reference/Prompt34-TaskManager-Optimization/TaskManager-Analysis.md`
+(A required / B on-demand / C unneeded). Re-run only the delta: new services, startup entries, memory leaders, DB sizes.
+- RAM is rarely the bottleneck on this 39.5 GB machine; look at CPU, disk churn, startup and telemetry first.
+- "Duplicates" in Details (chrome, Code, slack, svchost, WebView2) are multi-process by design. Only genuine duplicates:
+  `sqlceip`/`SQLTELEMETRY*` per SQL instance, two `QBDBMgrN` (QuickBooksDB33/34), `dotnet run` parent+child for MCP servers.
+- SQL Service Broker is a per-database flag, not a process/service. Old restored DBs cost disk, not a broker.
+- Never touch: Windows core, Defender, Sophos/OpenVPN, ManageEngine (IT-managed), SQLEXPRESS, current QB DB manager.
+- Apply via `apply-optimizations.ps1` (dry-run default, `-Apply` needs admin and Krishna's yes, `-Revert` restores).
+
+**Checkpoint rule:** after a task finishes, offer a one-line light check (top memory, startup changes, new SQL DBs);
+run the full audit weekly or when Krishna asks. Never apply changes without his confirmation.
 
 ---
 

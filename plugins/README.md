@@ -14,6 +14,10 @@ desktop app, or `claude` on the command line — from any working directory, in 
 each one does, and what "restart" means for each Claude surface. Read that if anything below
 is unclear.
 
+**System architecture — how it's built, how it runs: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+— overview, execution flow across every surface, where memory lives, the full agent/skill
+inventory, high level to low level.
+
 **Per-integration setup and the full picture: [docs/MASTER-WORKFLOW.md](docs/MASTER-WORKFLOW.md)**
 — one doc per third-party system (Bitbucket, Jenkins, Jira/Confluence, Slack, SQL Server/CIS DB,
 QuickBooks Desktop, remote VM/RDP, web/browser Claude), plus how a session flows and exactly
@@ -34,12 +38,13 @@ Verify:
 
 ```
 /plugin          # both plugins listed as installed
-/agents          # 14 personal + 21 wd-* agents
+/agents          # 17 personal + 21 wd-* agents
 /mcp             # 11 local servers + your claude.ai connectors
 ```
 
 Typing `/` should now offer `/jira`, `/git`, `/bitbucket`, `/customization`, `/ship-to-qa`,
-`/kibana`, `/confluence`, `/slack`, `/db`, `/daily-update`, `/sys-fix`, `/learn`, `/route`.
+`/kibana`, `/confluence`, `/slack`, `/slack-autoreply`, `/db`, `/daily-update`, `/sys-fix`,
+`/learn`, `/route`.
 
 ### Updating later
 
@@ -59,14 +64,16 @@ KrishnaAiGen/
     scripts/sync-workspace.ps1        distributes .mcp.json + CLAUDE.md to both trees
   plugins/
     krishna-core/
-      agents/      16   personal specialists (jira, git, bitbucket, slack, db, confluence,
-                        daily-update, dev-customization, sys-troubleshoot, kibana, ship-to-qa,
-                        krishnaaigen router, krishnaaigen-autonomous, agent-learning,
-                        skill-author, memory-gardener)
-      skills/      19   the 17 ported .cursor/skill-library packs + ticket-context +
+      agents/      17   personal specialists (jira, git, bitbucket, slack, slack-auto-responder,
+                        db, confluence, daily-update, dev-customization, sys-troubleshoot,
+                        kibana, ship-to-qa, krishnaaigen router, krishnaaigen-autonomous,
+                        agent-learning, skill-author, memory-gardener)
+      skills/      24   the 17 ported .cursor/skill-library packs + ticket-context +
                         resume-work + krishnaaigen-skill-evolution (rewritten for the
-                        plugin era — see "Standing behavior" below)
-      commands/    14   thin launchers onto the agents above, + /agents-list
+                        plugin era — see "Standing behavior" below) + cis-db-access +
+                        pr-review + wd-ui-automation + slack-auto-reply (new skills land
+                        here as recurring needs surface)
+      commands/    15   thin launchers onto the agents above, + /agents-list
       hooks/            SessionStart preflight
       scripts/          preflight.ps1, approve-mcp-trust.py (see "One-time setup extras")
       reference/        archived Copilot prompts (not active — see its README)
@@ -200,14 +207,14 @@ For a plain list instead of the autocomplete UI, run `/agents-list` (optionally 
 
 Never in a file that gets committed, never printed. They live in:
 
-- **Windows user environment variables** — `BITBUCKET_TOKEN`, `BITBUCKET_USERNAME`,
+- **Windows user environment variables** — `BITBUCKET_PASSWORD`, `BITBUCKET_USERNAME`,
   `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID`, `KIBANA_WD_AUTH`, `JIRA_API_TOKEN`,
   `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET`, `USER_GOOGLE_EMAIL`.
 - **`C:\WG-Agentic\wg-ai-workspace\.env`** — what the local MCP servers read.
 
 The session preflight reports which of these are **missing** by name. It never reads a value.
 
-`BITBUCKET_TOKEN` must be a Bitbucket **HTTP access token** (repo settings to Access tokens),
+`BITBUCKET_PASSWORD` must be a Bitbucket **HTTP access token** (repo settings to Access tokens),
 not an Atlassian API token from `id.atlassian.com`. The username is the account slug
 `krishnabankar`, not the email — `@` breaks the remote URL.
 
