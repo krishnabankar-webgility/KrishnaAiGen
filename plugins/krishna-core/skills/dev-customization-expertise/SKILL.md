@@ -50,7 +50,7 @@ public const string NODE_NAME_ = "NODE_NAME_";
 ## Naming and structure
 
 - **Method and type names must be meaningful** (domain language: profile, QB transaction, posting, sync). **Never** embed ticket ids (`UD-32081`, etc.) in identifiers.
-- **Gate at the call site:** `if (CommonUtility.CustomizationNode.Contains(CustomizationConstant.<NODE> + profileId)) { … }` **before** calling customization helpers so idle profiles never pay for parsing or helper entry. Helpers should assume the caller gated **or** document that they are only for customization paths — **do not** hide the only `CustomizationNode.Contains` check inside a helper that is invoked unconditionally from hot paths.
+- **Gate at the call site:** `if (CommonUtility.IsCustomizationNodeEnabledForProfile(CustomizationConstant.<NODE>, profileId)) { … }` **before** calling customization helpers so idle profiles never pay for parsing or helper entry. Helpers should assume the caller gated **or** document that they are only for customization paths — **do not** hide the only node check inside a helper that is invoked unconditionally from hot paths. Never write `CustomizationNode.Contains(<NODE> + profileId)` in new code: it is a substring match (node `_12` also enables profile `1`, UD-33983).
 - **Small vs large changes:** A few lines in an existing method → wrap in the customization `if` inline. Larger logic → **new private/static helper** in the appropriate layer (e.g. `CommonUtility`, controller, DAL) and **call only under the guard**.
 - **`IOrder` / interface surfaces:** Do **not** add block comments or Jira URLs on interface method declarations; document on the implementation if needed.
 
@@ -80,6 +80,48 @@ public const string NODE_NAME_ = "NODE_NAME_";
 - **Small-change strategy:** If small edits are enough, avoid new abstractions.
 - **Separate methods for larger changes:** Add helper methods when logic grows.
 - **No scheduler changes** unless the user **explicitly** requests them.
+
+## WD house coding conventions — apply while writing, not at review
+
+Mined from 373 reviewer comments on 285 unify-enterprise PRs (2026-11-18, UD-33880 Prompt 12), ranked by how often reviewers raised them. Every one has come back on our own PRs at review time; write the first draft this way instead. Helpers are in `Desktop/wg.eCC.DTO/UtilityFunctions.cs` unless noted.
+
+| # | Write this | Never this on an added line | Raised |
+|---|---|---|---|
+| 1 | `UtilityFunctions.IsNullOrBlank(x)` (C# and VB; = `IsNullOrWhiteSpace(ToStr(x))`) | `string.IsNullOrEmpty`, `string.IsNullOrWhiteSpace`, `x == ""`, `x <> ""` | 23 |
+| 2 | `UtilityFunctions.ToEqual(a, b)` for store/CIS/QB/DB strings (trims, ignores case; **false if either side is null**, even both) | `a == b`, `string.Equals(a, b, OrdinalIgnoreCase)`, `.Trim().ToUpper().Equals()`, VB `=` on such values. A collection comparer (`StringComparer.OrdinalIgnoreCase` in HashSet/Distinct) is fine. | 20 |
+| 3 | Null-guard every link: DTO/settings objects, `Count > 0`, optional QBFC `Ret` elements before `.GetValue()`; match the guard style sibling call sites use | `a?.B.C`, unguarded `Ret.X.GetValue()` | 12 |
+| 4 | Parameterized SQL (`SqlParameter`/`OleDbParameter`, `IN (@id0, @id1)`) ; `UtilityFunctions.SqlStr` only as a last resort | concatenating ids, lists, decimals or dates into SQL | 11 |
+| 5 | Never fail silently: no empty `catch`; return a status and gate follow-ups (history note, next post) on it; keep "read failed" apart from "no rows" | swallowing and carrying on | 10 |
+| 6 | One ticket per PR; `UD-NNNNN` in branch and title; nothing else rides along (other tickets, diagnostics, docs, bitness edits) | | 10 |
+| 7 | Fetch once before the loop / per batch; reuse the caller's controller | DAL call or `new XController()` per row (N+1) | 8 |
+| 8 | `UtilityFunctions.ToStr/ToInt/ToLong/ToDouble/ToDecimal/ToBoolean` | bare `.ToString()` on a nullable/object/cell, `Convert.ToInt32`, `int.Parse` | 7 |
+| 9 | Logic in controller/DAL/helper; new public methods go in the `_Partial` file or a helper, not on god objects (`AccountingSoftwareController`, `OnlineStoreController`, `SchedularProfile`, `CommonUtility`); long work off the UI thread | logic in forms, event handlers, `*.designer.cs` | 7 |
+| 10 | Decide on a status code / HResult / named constant | `ex.Message.Contains(...)`, `message.Contains("404")`, repeated magic literals | 6 |
+| 11 | Change every parallel copy (UI and VB scheduler, manual and auto, insert and update) and list the callers | fixing one of three copies | 5 |
+| 12 | Keep the legacy `ArrayList` contract: `[0]` status, `[1]` count/message, `[2]` data; no new status value unless every caller handles it | `Add("Skipped")` that callers log as a failure | 5 |
+| 13 | Diff = the change only: CRLF kept (`git ls-files --eol`), no re-indent / VS pretty-listing, no BOM | | 5 |
+| 14 | Schema: column in the `CREATE TABLE` in `wgDB.sql` **and** a guarded `IF COL_LENGTH(...) IS NULL ALTER` in `wgDB_alter.sql`; none in `wgDB_update.sql` | | 4 |
+| 15 | T-SQL that runs on SQL Server 2005 in scripts and embedded strings: `DECLARE` then `SET` | `DECLARE @x BIT = 0`, `MERGE`, `IIF`, `STRING_SPLIT`, `TRY_CONVERT`, `STRING_AGG` | 2 |
+| 16 | Locale-independent numbers/dates into SQL or stored fields (`ToString(fmt, CultureInfo.InvariantCulture)`) | culture-formatted decimals/dates | 4 |
+| 17 | A new block never overwrites a field another node/branch already set; guard with `IsNullOrBlank` or an explicit `else` | | 4 |
+| 18 | DALs through the factory (`dataFactory.getOrderDAL()`) | `new OrderDAL()` | 2 |
+| 19 | `.designer.cs`: no accidental Size/Location swaps; TableLayoutPanel/Anchor/Dock over absolute Point/Size | | 2 |
+| 20 | Short code strings (QBD status `"0"`/`"3120"`, `"9999"`) compared with `ToEqual`, not `==`; reuse the existing helper that already owns those codes (`IsQbUndoSyncDeleteSuccess`) | `x.Trim() == "0"` | UD-33880 re-review |
+| 21 | `IN (...)` lists built from user selections: chunk (about 1,000) or use a TVP; SQL Server caps a command at 2,100 parameters | one `@idN` per item, no batching | UD-33880 re-review |
+| 22 | Node-only filters/rules go after the node check inside the method, even when the caller is already guarded; public methods guard themselves | filter first, node check later | UD-33880 re-review |
+| 23 | Scheduler log: write a recurring condition (e.g. a settings conflict) once per change, not once per tick; keep `Dispose`/`components` for WinForms helpers like `ToolTip` | `new ToolTip().SetToolTip(...)` | UD-33880 re-review |
+| 24 | Result messages to the user should use the count the DAL returned, not the size of the selection | `foreach selected: "Deleted"` | UD-33880 re-review |
+
+Two reviewer asks that conflict with standing rules here; follow the rule, and say so in the PR:
+- **Node check style (UD-33880 P13, supersedes P12):** every line the branch adds or rewrites uses `CommonUtility.IsCustomizationNodeEnabledForProfile(NODE, profileId)` (exact match), never `CustomizationNode.Contains(NODE + id)`. Existing develop `Contains` sites are not swept (UD-33709 P16: conflicts with the generic feature-settings work); list them to Krishna as a flag (file:line, node, prefix-collision risk) and change them only when he says so. Even for a prefix-match bug on the ticket's own node, fix the new lines first (UD-33983: the new `IsPurchaseOrderTaskEnabled` alone was enough). The lint script flags `CustomizationNode.Contains(` on added lines.
+- **Unit tests:** customization tickets are verified against the QBD sandbox with a harness instead (`no-unit-tests-verify-against-qbd`). Reviewers keep asking (bot Gate 2), so say in the PR description why there are none.
+
+**Lint before every build and before every push** (it reads only the lines the branch adds):
+```
+git -C <repo> diff origin/develop -U0 -- "*.cs" "*.vb" ":!*.Designer.cs" ":!*.designer.cs" ":!*.Designer.vb" > pr.diff
+python -I plugins/krishna-core/skills/dev-customization-expertise/lint-conventions.py pr.diff
+```
+Zero hits, or every remaining hit has a reason (a value type's `.ToString()`, a collection comparer, a sibling-pattern match). Fix hits on lines you moved from another file too: a move is an added line.
 
 ## Logging and error handling — selective, not everywhere
 
@@ -243,7 +285,8 @@ Before presenting code changes for review:
 - [ ] Jira URL / `UD-####` appears **only** on the node line in `CustomizationConstant.cs`. No ticket comments at the gated call sites (the node itself is the reference).
 - [ ] **Fetch `origin/develop` before adding any shared helper and again before shipping.** Grep develop for the same method name/signature. A same-signature copy merges with no textual conflict, then fails to compile (CS0111). Reuse develop's helper. (UD-33188: `IsCustomizationNodeEnabled(string)` landed on develop via UD-33334 after the branch was cut.)
 - [ ] Merge latest `develop` into the ticket branch before shipping. Conflicts at the end of `CustomizationConstant.cs` are normal (both sides append): keep develop's nodes first, ours last. Afterwards check: no conflict markers, no duplicate methods, `git diff origin/develop` shows only our change, build clean.
-- [ ] Use the house helpers from the first draft: `UtilityFunctions.IsNullOrBlank` / `ToEqual`, never raw `string.IsNullOrWhiteSpace` / `.Trim().ToUpper().Equals()` on added lines (the PR review bot flags both). Copying a neighbouring legacy branch does not exempt you.
+- [ ] House conventions table (above) followed from the first draft, and `lint-conventions.py` run on the branch diff: zero hits or each justified. Copying a neighbouring legacy branch does not exempt you.
+- [ ] Every non-node path is identical to `origin/develop`: when the ticket's gate makes code read a new settings DTO, the node-off branch still reads the classic one (UD-33880: PO posting read `LightspeedXPOSettings` for every profile; vendor, class, template, RefNumber and Item Receipt/Bill flags silently changed for everyone else). A new SQL term in a shared stored procedure is also gated (store type in SQL, node in C#).
 - [ ] A value written to a bounded DB column is length-guarded (check the real schema in `wgDB.sql` / `wgDB_alter.sql`, not the local test DB): one over-long value fails the whole batch insert.
 - [ ] Every persistence path covered: insert **and** update (e.g. Shopify incremental download UPDATEs existing `Temp_Items` rows via `UpdateStoreDataRow`, it does not re-insert them)
 

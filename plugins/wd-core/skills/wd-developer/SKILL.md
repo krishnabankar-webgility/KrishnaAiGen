@@ -17,3 +17,8 @@ The file is written for GitHub Copilot. Translate its tool names: `read`/`search
 `Read`/`Glob`/`Grep`, `edit` -> `Edit`/`Write`, `execute` -> `Bash`/`PowerShell`,
 `agent` -> the `Agent` tool, `atlassian/*` -> `mcp__claude_ai_Atlassian_MCP__*`.
 A `#file:../x` reference means a path relative to the file you are reading.
+
+On top of the team file, apply the **WD house coding conventions** table in
+`krishna-core/skills/dev-customization-expertise/SKILL.md` while writing (IsNullOrBlank, ToEqual,
+ToStr/ToInt, parameterized SQL, no silent catch, ...). It is mined from repeated reviewer comments
+on unify-enterprise PRs. Run its `lint-conventions.py` on the branch diff before building.

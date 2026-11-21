@@ -106,6 +106,7 @@ These started as one-off asks and are now just how this works, so they don't nee
 - Skip suggestions, style/convention nits, performance remarks on non-hot paths, scope/split remarks, "add tests" notes, and anything that matches how the existing code is already written. No edits for low-risk items: the work is already tested.
 - For a high-risk fix: test the impacted area myself (real code path, harness against UnifyDB / QBD sandbox) before reporting; record fixed/skipped + why in the ticket's Implementation plan md. Leave the fix uncommitted unless Krishna asks for commit/push.
 - Reviewing **someone else's** PR keeps the format above: each finding as its own inline comment plus one consolidated summary comment.
+- **Convention suggestions feed the coding rules (UD-33880 P12, 2026-11-18).** Style/convention notes are still not fixed one by one at review time. Instead, check each against the "WD house coding conventions" table in `dev-customization-expertise`: if it is already a row, the miss is a writing-time miss, so run `lint-conventions.py` on the whole branch and fix every hit on our added lines in one pass. If it is new and a reviewer has raised it before (search old PR comments), add a row, and a lint pattern if it is mechanical. The table was built by mining 285 PRs; re-mine when reviewers' asks drift.
 
 ## Verifying that a teammate's PR carries our work (PR #10497 vs #10485, 2026-11-06)
 

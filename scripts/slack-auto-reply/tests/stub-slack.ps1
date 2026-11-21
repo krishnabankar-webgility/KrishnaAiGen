@@ -27,7 +27,7 @@ while ($l.IsListening) {
     else { foreach ($k in $req.QueryString.AllKeys) { $a[$k] = $req.QueryString[$k] } }
     $s = Load
     $s.calls += @(@{ method = $method; token = $kind; channel = [string]$a.channel })
-    $userOnly = 'search.messages', 'users.info', 'users.profile.get', 'chat.getPermalink'
+    $userOnly = 'search.messages', 'users.info', 'users.profile.get', 'users.getPresence'
     if ($method -in $userOnly -and $kind -ne 'user') { Save $s; Send $ctx @{ ok = $false; error = 'not_allowed_token_type' }; continue }
     if ($kind -eq 'none') { Save $s; Send $ctx @{ ok = $false; error = 'invalid_auth' }; continue }
 
@@ -35,13 +35,37 @@ while ($l.IsListening) {
       'search.messages' {
         if ($s.search_error) { Save $s; Send $ctx @{ ok = $false; error = $s.search_error }; break }
         $cut = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() - 172800
-        $matches_ = @(foreach ($ch in $s.channels.Keys) { if ($ch -like 'D*') { foreach ($m in $s.channels[$ch]) { if ($m.user -ne 'U08FTS2SRAP' -and [double]$m.ts -gt $cut) { @{ channel = @{ id = $ch }; user = $m.user; ts = $m.ts; text = $m.text } } } } })
+        $q = [string]$a.query
+        if ($q -like '*from:<@U08FTS2SRAP>*' -and $q -like '*is:thread*') {   # thread monitor: Krishna's own channel messages that are in a thread
+          $tm = @(foreach ($ch in $s.channels.Keys) { if ($ch -like 'C*' -and $ch -ne 'C0B0CBW8G03') { foreach ($m in $s.channels[$ch]) { if ($m.user -eq 'U08FTS2SRAP' -and [double]$m.ts -gt $cut -and ($m.thread_ts -and $m.thread_ts -ne $m.ts)) {   # like real Slack: is:thread returns his REPLIES, not a thread parent he never replied in
+            $meta = $s.chan_meta[$ch]; $pl = "https://webgility.slack.com/archives/$ch/p$(([string]$m.ts) -replace '\.', '')"; if ($m.thread_ts -and $m.thread_ts -ne $m.ts) { $pl += "?thread_ts=$($m.thread_ts)" }
+            @{ channel = @{ id = $ch; name = $meta.name; is_private = [bool]$meta.private }; user = $m.user; ts = $m.ts; text = $m.text; permalink = $pl } } } } })
+          Save $s; Send $ctx @{ ok = $true; messages = @{ matches = $tm; paging = @{ pages = 1; page = 1 } } }; break
+        }
+        if ($q -match '^from:<@U08FTS2SRAP> after:\S+$') {   # the thread monitor's second query: his own top-level posts in channels
+          $tm = @(foreach ($ch in $s.channels.Keys) { if ($ch -like 'C*' -and $ch -ne 'C0B0CBW8G03') { foreach ($m in $s.channels[$ch]) { if ($m.user -eq 'U08FTS2SRAP' -and [double]$m.ts -gt $cut -and -not ($m.thread_ts -and $m.thread_ts -ne $m.ts)) {
+            $meta = $s.chan_meta[$ch]; $pl = "https://webgility.slack.com/archives/$ch/p$(([string]$m.ts) -replace '\.', '')"
+            @{ channel = @{ id = $ch; name = $meta.name; is_private = [bool]$meta.private }; user = $m.user; ts = $m.ts; text = $m.text; permalink = $pl } } } } })
+          Save $s; Send $ctx @{ ok = $true; messages = @{ matches = $tm; paging = @{ pages = 1; page = 1 } } }; break
+        }
+        if ($q -like '*from:<@U08FTS2SRAP>*' -and $q -notlike '*is:dm*') { Save $s; Send $ctx @{ ok = $true; messages = @{ matches = @($s.verify_hits); paging = @{ pages = 1; page = 1 } } }; break }
+        if ($q -like '*<@U08FTS2SRAP>*') {   # mention search: channel messages that mention Krishna
+          $mm = @(foreach ($ch in $s.channels.Keys) { if ($ch -like 'C*' -and $ch -ne 'C0B0CBW8G03') { foreach ($m in $s.channels[$ch]) { if ($m.user -ne 'U08FTS2SRAP' -and ([string]$m.text).Contains('<@U08FTS2SRAP>') -and [double]$m.ts -gt $cut) {
+            $meta = $s.chan_meta[$ch]; $pl = "https://webgility.slack.com/archives/$ch/p$(([string]$m.ts) -replace '\.', '')"; if ($m.thread_ts -and $m.thread_ts -ne $m.ts) { $pl += "?thread_ts=$($m.thread_ts)" }
+            @{ channel = @{ id = $ch; name = $meta.name; is_private = [bool]$meta.private }; user = $m.user; ts = $m.ts; text = $m.text; permalink = $pl } } } } })
+          Save $s; Send $ctx @{ ok = $true; messages = @{ matches = $mm; paging = @{ pages = 1; page = 1 } } }; break
+        }
+        if ($q -notlike '*is:dm*') {   # a research query: canned hits
+          Save $s; Send $ctx @{ ok = $true; messages = @{ matches = @($s.research_hits); paging = @{ pages = 1; page = 1 } } }; break
+        }
+        $matches_ = @(foreach ($ch in $s.channels.Keys) { if ($ch -like 'D*' -and $ch -notlike 'DAPP*') { foreach ($m in $s.channels[$ch]) { if ($m.user -ne 'U08FTS2SRAP' -and [double]$m.ts -gt $cut) { @{ channel = @{ id = $ch }; user = $m.user; ts = $m.ts; text = $m.text } } } } })
         Save $s; Send $ctx @{ ok = $true; messages = @{ matches = $matches_; paging = @{ pages = 1; page = 1 } } }
       }
       { $_ -in 'conversations.history', 'conversations.replies' } {
         $ch = [string]$a.channel
         if ($s.fail_history -contains $ch) { Save $s; Send $ctx @{ ok = $false; error = 'internal_error' }; break }
-        if ($ch -like 'D*' -and $kind -ne 'user') { Save $s; Send $ctx @{ ok = $false; error = 'channel_not_found' }; break }
+        if ($ch -like 'D*' -and $ch -notlike 'DAPP*' -and $kind -ne 'user') { Save $s; Send $ctx @{ ok = $false; error = 'channel_not_found' }; break }
+        if ($ch -like 'DAPP*' -and $kind -ne 'bot') { Save $s; Send $ctx @{ ok = $false; error = 'channel_not_found' }; break }
         $msgs = @($s.channels[$ch])
         if ($method -eq 'conversations.replies') {
           $sel = @($msgs | Where-Object { $_.ts -eq $a.ts -or $_.thread_ts -eq $a.ts } | Sort-Object { [double]$_.ts })
@@ -62,12 +86,14 @@ while ($l.IsListening) {
         if ($u) { Send $ctx @{ ok = $true; user = @{ id = $a.user; real_name = $u.real_name; name = $u.name; profile = @{ title = $u.title }; is_bot = [bool]$u.is_bot; deleted = $false } } }
         else { Send $ctx @{ ok = $false; error = 'user_not_found' } }
       }
+      'conversations.list' { Save $s; Send $ctx @{ ok = $true; channels = @($s.app_ims) } }
       'users.profile.get' { Save $s; Send $ctx @{ ok = $true; profile = $s.krishna_status } }
+      'users.getPresence' { Save $s; Send $ctx @{ ok = $true; presence = $(if ($s.krishna_presence) { $s.krishna_presence } else { 'away' }) } }
       'chat.getPermalink' { Save $s; Send $ctx @{ ok = $true; permalink = "https://webgility.slack.com/archives/$($a.channel)/p$(([string]$a.message_ts) -replace '\.', '')" } }
       'conversations.open' { Save $s; Send $ctx @{ ok = $true; channel = @{ id = 'DBOTTEST1' } } }
       'chat.postMessage' {
         $ch = [string]$a.channel
-        if ($ch -like 'D*' -and $kind -eq 'bot' -and $ch -ne 'DBOTTEST1') { Save $s; Send $ctx @{ ok = $false; error = 'channel_not_found' }; break }
+        if ($ch -like 'D*' -and $ch -notlike 'DAPP*' -and $kind -eq 'bot' -and $ch -ne 'DBOTTEST1') { Save $s; Send $ctx @{ ok = $false; error = 'channel_not_found' }; break }
         if ([int]$s.fail_summary_posts -gt 0 -and $kind -eq 'bot' -and $ch -eq 'C0B0CBW8G03' -and -not $a.thread_ts) { $s.fail_summary_posts = [int]$s.fail_summary_posts - 1; Save $s; Send $ctx @{ ok = $false; error = 'internal_error' }; break }
         $s.seq = [int]$s.seq + 1
         $ts = '{0}.{1:000000}' -f [DateTimeOffset]::UtcNow.ToUnixTimeSeconds(), $s.seq

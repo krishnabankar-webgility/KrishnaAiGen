@@ -24,8 +24,12 @@ copies still use the old name:
    - **Customer issue:** add a simple execution workflow, from "add the node" to the output.
    - **Bug:** a short RCA plus the handling and the newly impacted areas.
    - The FYI/CC/field format is in Krishna's memory note `ship-to-qa-workflow`.
-5. **QA share (when not given):** the newest `\\192.168.0.95\Kits\Unify\WebgilityInstaller_<version>` folder, plus
-   `\Customizations`. Create `Customizations` if it is missing.
+4a. **Jenkins/Bitbucket infra failure (checkout error, SSH host, server disk): do not change Jenkins or Bitbucket config and do not try alternatives** (infra owner: Krishna Panchal; Krishna Bankar's account has no RunScripts permission). Diagnose read-only from the console and Slack, tell Krishna Bankar, wait ~15 min, then DM Krishna Panchal (Slack `U05A4C4ADAN`) with the cause and monitor his replies; retry the build only. See the memory note `jenkins-build-checkout-failure-self-fix`.
+5. **QA share (when not given):** `\\192.168.0.95\Kits\Unify\WebgilityInstaller_<version>\Customizations`, where
+   `<version>` is the ticket's Jira **Fix versions** value (`Desktop-9.12.2` → `9.12.2`). This is **not** the newest
+   folder on the share: that one is often a version already released (check the release posts in the build/release
+   update channel). Create `WebgilityInstaller_<version>` and/or `Customizations` if they are missing. Use the newest
+   unreleased folder only when the ticket has no Fix Version, and say so.
 6. **Slack:** `func-wd-installer-creation-updates` (pre-build) and `func-wd-build-updates` (QA notify, real `<@id>` mention).
    **The standard workflow is fixed (Krishna, 2026-11-09, Prompt 40).** The 2nd (QA) notification always goes to `func-wd-build-updates`,
    never to #int-cust-sync or any other channel. Anything extra he asks for in the same run (for example sharing the PR for review in

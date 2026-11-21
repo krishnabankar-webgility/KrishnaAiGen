@@ -118,7 +118,7 @@ Mark: [ ] pending | [v] done | [x] failed | [-] skipped
 
 ### Step 4 — Autonomous Polling [NO USER INPUT]
 - Poll via job-level API: `/api/json?tree=builds[number,building,result]{0,3}` (NOT individual build API — returns empty fields while running)
-- Poll every 60 seconds
+- Poll every 60 seconds inside the script, but the agent/orchestrator itself must not check the build status or react to each poll: a WD installer build always takes more than 12 minutes, so the first check is at about 12 minutes, then every 2 minutes (Krishna, 2026-11-20). Do other work while waiting.
 - Display checklist progress after each poll
 - ❌ NEVER ask "is the build done?"
 - Wait up to 40 minutes
@@ -171,3 +171,6 @@ Mark: [ ] pending | [v] done | [x] failed | [-] skipped
 - ❌ Shows alternative/wrong share paths in Slack
 - ❌ Includes placeholder text in Jira comment
 - ❌ Assumes QA assignee without asking
+
+## Bug-type fixes: always post an RCA (Krishna, 2026-11-20)
+When the ticket being shipped is a **bug** (or the fix answers a bug), the QA Jira comment on **each bug** must also carry a short RCA and, if one was agreed, the agreed behaviour for that case, then the standard fields as usual (build, QA share, node, impact areas, FYI + CC). Several bugs from one build get one separate comment each. The main customer issue still gets only the short build note.

@@ -51,7 +51,8 @@ Before coding, confirm:
 - [ ] Installation-wide node with a store-specific requirement: every gate also checks the store type
 - [ ] Jira URL / `UD-####` only on the node line in `CustomizationConstant.cs`, none at call sites
 - [ ] Fetch `origin/develop` before adding a shared helper and before shipping; reuse a same-named helper already on develop (a copy compiles fine until the merge, then CS0111). Merge develop into the ticket branch before shipping and check: no conflict markers, no duplicate methods, `git diff origin/develop` is only our change
-- [ ] House helpers from the first draft: `UtilityFunctions.IsNullOrBlank` / `ToEqual`; bounded DB columns length-guarded against the real schema
+- [ ] House conventions from the first draft (full ranked table + `lint-conventions.py` in `plugins/krishna-core/skills/dev-customization-expertise/`): `UtilityFunctions.IsNullOrBlank` / `ToEqual` / `ToStr` / `ToInt`, parameterized SQL, no empty catch, no control flow on message text, SQL Server 2005-safe T-SQL; bounded DB columns length-guarded against the real schema
+- [ ] Node off = `origin/develop` behaviour on every path, including the classic settings DTO a gated path used to read and any new term in a shared stored procedure
 - [ ] Every persistence path covered (insert and update)
 - [ ] Build/test passes for repository standards
 - [ ] Final summary includes technical changes, validation done, QA notes, and rollback guidance

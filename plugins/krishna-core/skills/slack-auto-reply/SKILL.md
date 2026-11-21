@@ -17,7 +17,7 @@ in #my-daily-update, where Krishna steers it by replying in the thread.
 
 | § | In reference.md |
 |---|---|
-| §1 | Scope: 1:1 DMs day and night; channel mentions designed, not built |
+| §1 | Scope: 1:1 DMs day and night (a conversation started in his absence continues live, §4.9), @mention proposals and suggestions for threads he started (never a channel reply, §4.6, §4.8), messages to the app. Jobs `fix` / `Analysis KrishnaAiGen` (§8.1); a fix pushed by the web session is built and shipped from the PC |
 | §2 | **Hard rules**: label line, no commitments, no wd-context answers, no private data, one message per episode, leadership gets the away note only |
 | §3 | Components, runners, cost, AR-STATE modes (live / shadow), private store and config keys |
 | §4 | What counts as "unanswered": episodes, 30-min due rule, proposals vs sent, final guard |

@@ -12,12 +12,14 @@
 #>
 param(
   [ValidateSet('local', 'vm')] [string]$Runner = 'local',
-  [int]$EveryMinutes = 15
+  [int]$EveryMinutes = 5
 )
 $script = Join-Path $PSScriptRoot 'Invoke-SlackAutoReply.ps1'
 $pwsh   = (Get-Command pwsh -ErrorAction Stop).Source
 
-$action    = New-ScheduledTaskAction -Execute $pwsh -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" -Runner $Runner"
+# wscript + Run-Hidden.vbs starts pwsh with no window at all (no console flash while you work).
+$launcher  = Join-Path $PSScriptRoot 'Run-Hidden.vbs'
+$action    = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "//B //Nologo `"$launcher`" `"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$script`" -Runner $Runner"
 $trigger   = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes $EveryMinutes)
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
 $settings  = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 45) `
@@ -26,3 +28,4 @@ $settings  = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -StartWhe
 Register-ScheduledTask -TaskName 'Slack Auto-Reply' -Action $action -Trigger $trigger -Principal $principal -Settings $settings `
   -Description 'Slack DM auto-reply on Krishna''s behalf (KrishnaAiGen slack-auto-reply skill)' -Force | Out-Null
 Write-Host "Registered 'Slack Auto-Reply' ($Runner, every $EveryMinutes min). Logs: $env:USERPROFILE\.claude\slack-auto-reply\logs"
+
